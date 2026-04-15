@@ -4,51 +4,17 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-global $wpdb;
+$stats             = idl_get_stats_overview();
+$total_downloads   = $stats['total_downloads'];
+$total_files       = $stats['total_files'];
+$total_size        = $stats['total_size_bytes'];
+$total_log_entries = $stats['total_log_entries'];
+$top_alltime       = $stats['top_alltime'];
+$top_30d           = $stats['top_30d'];
 
-// ── Summary totals ────────────────────────────────────────────────────────────
-$total_downloads = (int) $wpdb->get_var(
-	"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'idl' AND post_status = 'publish'"
-);
-
-$total_files = (int) $wpdb->get_var(
-	"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files"
-);
-
-$total_size = (int) $wpdb->get_var(
-	"SELECT COALESCE(SUM(file_size),0) FROM {$wpdb->prefix}idl_files"
-);
-
-$total_log_entries = (int) $wpdb->get_var(
-	"SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log"
-);
-
-// ── Top 10 all-time (by file download_count) ──────────────────────────────────
-$top_alltime = $wpdb->get_results(
-	"SELECT p.ID, p.post_title, COALESCE(SUM(f.download_count),0) AS total_count
-	   FROM {$wpdb->posts} p
-	   LEFT JOIN {$wpdb->prefix}idl_files f ON f.download_id = p.ID
-	  WHERE p.post_type = 'idl' AND p.post_status = 'publish'
-	  GROUP BY p.ID, p.post_title
-	  ORDER BY total_count DESC
-	  LIMIT 10"
-);
-
-// ── Downloads per day — last 30 days (from log) ───────────────────────────────
-$daily = $wpdb->get_results(
-	$wpdb->prepare(
-		"SELECT DATE(downloaded_at) AS day, COUNT(*) AS count
-		   FROM {$wpdb->prefix}idl_download_log
-		  WHERE downloaded_at >= DATE_SUB(CURDATE(), INTERVAL %d DAY)
-		  GROUP BY DATE(downloaded_at)
-		  ORDER BY day ASC",
-		30
-	)
-);
-
-// Index by date string for easy lookup
+// Index daily counts by date string for easy lookup
 $daily_map = [];
-foreach ( $daily as $row ) {
+foreach ( $stats['daily_30d'] as $row ) {
 	$daily_map[ $row->day ] = (int) $row->count;
 }
 
@@ -60,20 +26,6 @@ for ( $i = 29; $i >= 0; $i-- ) {
 	$date                = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
 	$chart_days[ $date ] = $daily_map[ $date ] ?? 0;
 }
-
-// ── Top 10 in last 30 days (from log) ────────────────────────────────────────
-$top_30d = $wpdb->get_results(
-	$wpdb->prepare(
-		"SELECT l.download_id, p.post_title, COUNT(*) AS count
-		   FROM {$wpdb->prefix}idl_download_log l
-		   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
-		  WHERE l.downloaded_at >= DATE_SUB(CURDATE(), INTERVAL %d DAY)
-		  GROUP BY l.download_id, p.post_title
-		  ORDER BY count DESC
-		  LIMIT 10",
-		30
-	)
-);
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 function idl_format_bytes( int $bytes ): string {

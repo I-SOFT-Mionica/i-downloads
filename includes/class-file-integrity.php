@@ -89,11 +89,11 @@ class IDL_File_Integrity {
 	 */
 	public static function handle_missing( object $file, int $download_id ): string {
 		global $wpdb;
-		$table = "{$wpdb->prefix}idl_files";
 
 		if ( empty( $file->is_missing ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->update(
-				$table,
+				"{$wpdb->prefix}idl_files",
 				[
 					'is_missing'    => 1,
 					'missing_since' => current_time( 'mysql' ),
@@ -102,13 +102,14 @@ class IDL_File_Integrity {
 				[ '%d', '%s' ],
 				[ '%d' ]
 			);
+			IDL_File_Manager::bust_cache_for( $download_id, (int) $file->id );
 		}
 
 		// Count remaining non-missing local files on this download.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count immediately after write; freshness required.
 		$healthy = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Local variable derived from $wpdb->prefix.
-				"SELECT COUNT(*) FROM {$table}
+				"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files
 				  WHERE download_id = %d
 				    AND file_type   = 'local'
 				    AND is_missing  = 0",
@@ -196,14 +197,13 @@ class IDL_File_Integrity {
 		];
 
 		global $wpdb;
-		$table = "{$wpdb->prefix}idl_files";
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Scheduled scan of file rows; rows touched once per run, cache layer would never be hit.
 		$offset = 0;
 		while ( true ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Local table name.
 			$rows = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT * FROM {$table}
+					"SELECT * FROM {$wpdb->prefix}idl_files
 					  WHERE file_type = 'local'
 					  ORDER BY id ASC
 					  LIMIT %d OFFSET %d",
@@ -226,6 +226,7 @@ class IDL_File_Integrity {
 			$offset += self::CHUNK_SIZE;
 		}
 
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$summary['finished_at'] = current_time( 'mysql' );
 		update_option( 'idl_integrity_last_run', $summary, false );
 
@@ -331,6 +332,7 @@ class IDL_File_Integrity {
 				str_replace( '\\', '/', substr( $candidate, strlen( idl_files_dir() ) ) ),
 				'/'
 			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Rename-recovery relink; cache invalidated below.
 			$wpdb->update(
 				"{$wpdb->prefix}idl_files",
 				[
@@ -341,6 +343,7 @@ class IDL_File_Integrity {
 				[ '%s', '%s' ],
 				[ '%d' ]
 			);
+			IDL_File_Manager::bust_cache_for( (int) $file->download_id, (int) $file->id );
 			return true;
 		}
 
@@ -349,6 +352,7 @@ class IDL_File_Integrity {
 
 	private function mark_healthy( object $file ): void {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$wpdb->update(
 			"{$wpdb->prefix}idl_files",
 			[
@@ -361,6 +365,7 @@ class IDL_File_Integrity {
 		);
 
 		$download_id = (int) $file->download_id;
+		IDL_File_Manager::bust_cache_for( $download_id, (int) $file->id );
 		$this->maybe_republish( $download_id );
 	}
 
@@ -375,11 +380,10 @@ class IDL_File_Integrity {
 		}
 
 		global $wpdb;
-		$table        = "{$wpdb->prefix}idl_files";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Live count immediately after mark_healthy write; freshness required.
 		$still_broken = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Local table name.
-				"SELECT COUNT(*) FROM {$table}
+				"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files
 				  WHERE download_id = %d
 				    AND file_type   = 'local'
 				    AND is_missing  = 1",
@@ -484,6 +488,7 @@ class IDL_File_Integrity {
 	 */
 	public static function missing_count(): int {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Badge counter on custom table; freshness required for admin menu.
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_files WHERE is_missing = 1" );
 	}
 }

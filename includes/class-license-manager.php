@@ -5,9 +5,18 @@ class IDL_License_Manager {
 
 	private string $table;
 
+	public const CACHE_GROUP = 'idl_licenses';
+
 	public function __construct() {
 		global $wpdb;
 		$this->table = $wpdb->prefix . 'idl_licenses';
+	}
+
+	public static function bust_cache( ?int $id = null ): void {
+		wp_cache_delete( 'all_licenses', self::CACHE_GROUP );
+		if ( null !== $id && $id > 0 ) {
+			wp_cache_delete( "license_{$id}", self::CACHE_GROUP );
+		}
 	}
 
 	public function register_hooks(): void {
@@ -52,22 +61,35 @@ class IDL_License_Manager {
 
 	/** @return object[] */
 	public function get_all(): array {
+		$cached = wp_cache_get( 'all_licenses', self::CACHE_GROUP );
+		if ( false !== $cached ) {
+			return $cached;
+		}
 		global $wpdb;
-		return $wpdb->get_results(
+		$rows = $wpdb->get_results(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 			"SELECT * FROM {$this->table} ORDER BY sort_order ASC, id ASC"
 		) ?: [];
+		wp_cache_set( 'all_licenses', $rows, self::CACHE_GROUP, HOUR_IN_SECONDS );
+		return $rows;
 	}
 
 	public function get( int $id ): ?object {
+		$key    = "license_{$id}";
+		$cached = wp_cache_get( $key, self::CACHE_GROUP );
+		if ( false !== $cached ) {
+			return $cached ?: null;
+		}
 		global $wpdb;
-		return $wpdb->get_row(
+		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 				"SELECT * FROM {$this->table} WHERE id = %d",
 				$id
 			)
 		) ?: null;
+		wp_cache_set( $key, $row, self::CACHE_GROUP, HOUR_IN_SECONDS );
+		return $row;
 	}
 
 	private function save(): void {
@@ -88,8 +110,10 @@ class IDL_License_Manager {
 		$fmt  = [ '%s', '%s', '%s', '%s', '%s', '%d', '%d' ];
 
 		if ( $id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->update( $this->table, $data, [ 'id' => $id ], $fmt, [ '%d' ] );
 		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->insert( $this->table, $data, $fmt );
 			$id = (int) $wpdb->insert_id;
 		}
@@ -98,14 +122,16 @@ class IDL_License_Manager {
 
 		// Only one default allowed
 		if ( $data['is_default'] && $id ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; full-group cache flush below.
 			$wpdb->query(
 				$wpdb->prepare(
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 					"UPDATE {$this->table} SET is_default = 0 WHERE id != %d",
 					$id
 				)
 			);
 		}
+
+		self::bust_cache( $id );
 
 		wp_safe_redirect(
 			add_query_arg(
@@ -123,7 +149,9 @@ class IDL_License_Manager {
 	private function delete( int $id ): void {
 		global $wpdb;
 		if ( $id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->delete( $this->table, [ 'id' => $id ], [ '%d' ] );
+			self::bust_cache( $id );
 		}
 		wp_safe_redirect(
 			add_query_arg(

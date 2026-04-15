@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.4.7
+Stable tag: 0.4.8
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,13 @@ Yes. The plugin detects FSE themes and injects the download card via `the_conten
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.4.8 =
+* **Object cache layer** for `IDL_File_Manager` and `IDL_License_Manager`. Hot-path reads (`get_files`, `get_file`, `get_all`, `get`) now cache under the `idl_files` / `idl_licenses` groups with `HOUR_IN_SECONDS` TTL. On a 60-item download listing this collapses N+1 file lookups to a single warm-up query plus cache hits. All write paths bust the affected keys; `IDL_File_Manager::bust_cache_for()` is exposed for external callers (broken-links AJAX, integrity scan, category-folder rename).
+* **5-minute transient cache** for the stats dashboard. New `idl_get_stats_overview()` helper wraps the four COUNT(*) + three aggregate queries behind a single `idl_stats_overview` transient; both the admin dashboard and the REST `stats/overview` endpoint share the same cache.
+* **SQL-fragment refactor** in `class-log-table`, `class-export`, and `class-rest-api::get_logs`. Removed the `$base_sql` / `$where` string-building pattern; each call site now hands `$wpdb->prepare()` a single literal SQL string per branch, so static analysis can verify it. This kills every `InterpolatedNotPrepared` and `UnescapedDBParameter` warning on those three files with zero suppressions.
+* **Structured suppression sweep** across the remaining Plugin Check warnings: every `phpcs:ignore` now carries a rationale-tagged comment a reviewer can verify locally (write-path / cron / activator / one-shot / false-positive), not a generic "custom table" excuse.
+* 12 new phpunit tests (`FileManagerCacheTest`, `LicenseManagerCacheTest`) covering cache-hit, cache-bust on every write path, and external `bust_cache_for()` invalidation.
 
 = 0.4.7 =
 * **File integrity & broken-link recovery.** New scheduled check detects files missing from disk (configurable daily time). Serve-time detection replaces the raw 404 with a friendly "temporarily unavailable" page and a Contact admin button.

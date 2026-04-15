@@ -373,6 +373,7 @@ class IDL_Admin_Meta_Boxes {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin meta box: listing files under the download's category folder; single-request freshness required.
 		$tracked = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT file_path FROM {$wpdb->prefix}idl_files WHERE download_id = %d",

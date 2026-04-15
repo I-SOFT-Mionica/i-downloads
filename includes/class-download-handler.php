@@ -61,6 +61,7 @@ class IDL_Download_Handler {
 			}
 			$log_id = new IDL_Download_Logger()->log( $download_id, $file_id );
 			do_action( 'idl_after_download', $log_id );
+			// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- External-link downloads point off-site; wp_safe_redirect() rejects them. $target is validated via esc_url_raw() above. See changelog 0.4.3.
 			wp_redirect( $target );
 			exit;
 		}

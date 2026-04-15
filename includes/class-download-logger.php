@@ -52,6 +52,7 @@ class IDL_Download_Logger {
 
 		$data = apply_filters( 'idl_log_entry_data', $data );
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Write-path logger on custom log tables; never cached.
 		if ( false === $wpdb->insert( $this->table, $data, $format ) ) {
 			return null;
 		}
@@ -68,6 +69,7 @@ class IDL_Download_Logger {
 				$today
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		return $log_id;
 	}
@@ -85,9 +87,9 @@ class IDL_Download_Logger {
 			return 0;
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Retention cleanup on custom log table; never cached.
 		$deleted = (int) $wpdb->query(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 				"DELETE FROM {$this->table} WHERE downloaded_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
 				$days
 			)

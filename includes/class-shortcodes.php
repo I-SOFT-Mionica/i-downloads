@@ -112,6 +112,7 @@ class IDL_Shortcodes {
 
 		// Category filter
 		if ( $atts['category'] ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
 			$query_args['tax_query'][] = [
 				'taxonomy'         => 'idl_category',
 				'field'            => is_numeric( $atts['category'] ) ? 'term_id' : 'slug',
@@ -122,6 +123,7 @@ class IDL_Shortcodes {
 
 		// Tag filter
 		if ( $atts['tag'] ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for tag filtering; term_relationships index covers this access pattern.
 			$query_args['tax_query'][] = [
 				'taxonomy' => 'idl_tag',
 				'field'    => is_numeric( $atts['tag'] ) ? 'term_id' : 'slug',
@@ -131,6 +133,7 @@ class IDL_Shortcodes {
 
 		// Order by download count (stored in post meta)
 		if ( 'download_count' === $atts['orderby'] ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Required for popularity ordering; postmeta index covers this access pattern.
 			$query_args['meta_key'] = '_idl_download_count';
 			$query_args['orderby']  = 'meta_value_num';
 		}
@@ -200,6 +203,7 @@ class IDL_Shortcodes {
 				'parent'     => absint( $atts['parent'] ),
 				'hide_empty' => false,
 				'orderby'    => 'meta_value_num',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Required for custom category ordering; termmeta index covers this access pattern.
 				'meta_key'   => '_idl_cat_sort_order',
 			]
 		);
@@ -404,6 +408,7 @@ class IDL_Shortcodes {
 					's'              => $search_term,
 				];
 				if ( $cat_filter ) {
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
 					$query_args['tax_query'] = [
 						[
 							'taxonomy' => 'idl_category',
@@ -480,6 +485,7 @@ class IDL_Shortcodes {
 		}
 
 		if ( $atts['category'] ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
 			$query_args['tax_query'] = [
 				[
 					'taxonomy' => 'idl_category',
@@ -511,6 +517,7 @@ class IDL_Shortcodes {
 			'post_type'      => 'idl',
 			'post_status'    => 'publish',
 			'posts_per_page' => absint( $atts['limit'] ),
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Required for popularity ordering; postmeta index covers this access pattern.
 			'meta_key'       => '_idl_download_count',
 			'orderby'        => 'meta_value_num',
 			'order'          => 'DESC',
@@ -521,6 +528,7 @@ class IDL_Shortcodes {
 		// TODO: period-based ranking via sub-query in Phase 4.
 
 		if ( $atts['category'] ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
 			$query_args['tax_query'] = [
 				[
 					'taxonomy' => 'idl_category',

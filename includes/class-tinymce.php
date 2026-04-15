@@ -150,6 +150,7 @@ class IDL_Tinymce {
 		}
 
 		if ( $category > 0 ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
 			$args['tax_query'] = [
 				[
 					'taxonomy' => 'idl_category',

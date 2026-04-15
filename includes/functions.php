@@ -478,6 +478,80 @@ function idl_mime_icon_class( string $ext ): string {
 }
 
 /**
+ * Aggregate stats for the admin dashboard widget and the REST overview endpoint.
+ * Cached for 5 minutes — second-precision freshness is not a requirement here.
+ *
+ * @return array{
+ *     total_downloads:int,
+ *     total_files:int,
+ *     total_size_bytes:int,
+ *     total_log_entries:int,
+ *     top_alltime:array<object>,
+ *     top_30d:array<object>,
+ *     daily_30d:array<object>
+ * }
+ */
+function idl_get_stats_overview(): array {
+	$cached = get_transient( 'idl_stats_overview' );
+	if ( false !== $cached ) {
+		return $cached;
+	}
+
+	global $wpdb;
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregate dashboard query; result cached as 'idl_stats_overview' transient for 5 minutes (acceptable freshness for stats).
+	$data = [
+		'total_downloads'   => (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'idl' AND post_status = 'publish'"
+		),
+		'total_files'       => (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files"
+		),
+		'total_size_bytes'  => (int) $wpdb->get_var(
+			"SELECT COALESCE(SUM(file_size),0) FROM {$wpdb->prefix}idl_files"
+		),
+		'total_log_entries' => (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log"
+		),
+		'top_alltime'       => $wpdb->get_results(
+			"SELECT p.ID, p.post_title, COALESCE(SUM(f.download_count),0) AS total_count
+			   FROM {$wpdb->posts} p
+			   LEFT JOIN {$wpdb->prefix}idl_files f ON f.download_id = p.ID
+			  WHERE p.post_type = 'idl' AND p.post_status = 'publish'
+			  GROUP BY p.ID, p.post_title
+			  ORDER BY total_count DESC
+			  LIMIT 10"
+		) ?: [],
+		'top_30d'           => $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT l.download_id, p.post_title, COUNT(*) AS count
+				   FROM {$wpdb->prefix}idl_download_log l
+				   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+				  WHERE l.downloaded_at >= DATE_SUB(CURDATE(), INTERVAL %d DAY)
+				  GROUP BY l.download_id, p.post_title
+				  ORDER BY count DESC
+				  LIMIT 10",
+				30
+			)
+		) ?: [],
+		'daily_30d'         => $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DATE(downloaded_at) AS day, COUNT(*) AS count
+				   FROM {$wpdb->prefix}idl_download_log
+				  WHERE downloaded_at >= DATE_SUB(CURDATE(), INTERVAL %d DAY)
+				  GROUP BY DATE(downloaded_at)
+				  ORDER BY day ASC",
+				30
+			)
+		) ?: [],
+	];
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+
+	set_transient( 'idl_stats_overview', $data, 5 * MINUTE_IN_SECONDS );
+	return $data;
+}
+
+/**
  * Build a secure, nonce-protected download URL for a file.
  */
 function idl_get_download_url( int $file_id ): string {

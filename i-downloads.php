@@ -3,7 +3,7 @@
  * Plugin Name: i-Downloads
  * Plugin URI:  https://isoft.rs/i-downloads
  * Description: Hierarchical file download manager — categories, multi-file entries, secure download handler, audit logging, and role-based access control.
- * Version:     0.4.7
+ * Version:     0.4.8
  * Author:      I-SOFT Mionica
  * Author URI:  https://isoft.rs
  * License:     GPL v2 or later
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const IDL_VERSION = '0.4.7';
+const IDL_VERSION = '0.4.8';
 define( 'IDL_PLUGIN_FILE', __FILE__ );
 define( 'IDL_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'IDL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

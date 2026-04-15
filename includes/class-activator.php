@@ -157,6 +157,7 @@ HTACCESS;
 	private static function drop_legacy_columns(): void {
 		global $wpdb;
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Activator: one-shot schema/upgrade cleanup; dbDelta does not drop columns.
 		$has_column = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
@@ -176,6 +177,7 @@ HTACCESS;
 
 		// Obsolete per-download storage-mode post meta.
 		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = '_idl_storage_mode'" );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange
 	}
 
 	private static function register_capabilities(): void {
@@ -200,10 +202,9 @@ HTACCESS;
 
 	private static function seed_licenses(): void {
 		global $wpdb;
-		$table = $wpdb->prefix . 'idl_licenses';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Local variable derived from $wpdb->prefix.
-		if ( (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table" ) > 0 ) {
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Activator: one-shot seed on fresh install.
+		if ( (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_licenses" ) > 0 ) {
 			return;
 		}
 
@@ -247,7 +248,8 @@ HTACCESS;
 		];
 
 		foreach ( $licenses as $license ) {
-			$wpdb->insert( $table, $license, [ '%s', '%s', '%s', '%s', '%s', '%d', '%d' ] );
+			$wpdb->insert( "{$wpdb->prefix}idl_licenses", $license, [ '%s', '%s', '%s', '%s', '%s', '%d', '%d' ] );
 		}
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 }

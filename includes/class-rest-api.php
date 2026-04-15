@@ -308,47 +308,15 @@ class IDL_Rest_Api {
 	 * Returns aggregate statistics for the dashboard widget.
 	 */
 	public function get_stats_overview( WP_REST_Request $request ): WP_REST_Response {
-		global $wpdb;
-
-		$total_downloads = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'idl' AND post_status = 'publish'"
-		);
-
-		$total_files = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files"
-		);
-
-		$total_log_entries = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log"
-		);
-
-		// Total file size in bytes
-		$total_size = (int) $wpdb->get_var(
-			"SELECT COALESCE(SUM(file_size),0) FROM {$wpdb->prefix}idl_files"
-		);
-
-		// Most downloaded in the last 30 days
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$top_downloads = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT l.download_id, p.post_title AS title, COUNT(*) AS count
-				   FROM {$wpdb->prefix}idl_download_log l
-				   JOIN {$wpdb->posts} p ON p.ID = l.download_id
-				  WHERE l.downloaded_at >= DATE_SUB(NOW(), INTERVAL %d DAY)
-				  GROUP BY l.download_id, p.post_title
-				  ORDER BY count DESC
-				  LIMIT 5",
-				30
-			)
-		);
+		$stats = idl_get_stats_overview();
 
 		return new WP_REST_Response(
 			[
-				'total_downloads'   => $total_downloads,
-				'total_files'       => $total_files,
-				'total_log_entries' => $total_log_entries,
-				'total_size_bytes'  => $total_size,
-				'top_downloads_30d' => $top_downloads,
+				'total_downloads'   => $stats['total_downloads'],
+				'total_files'       => $stats['total_files'],
+				'total_log_entries' => $stats['total_log_entries'],
+				'total_size_bytes'  => $stats['total_size_bytes'],
+				'top_downloads_30d' => array_slice( $stats['top_30d'], 0, 5 ),
 			],
 			200
 		);
@@ -367,30 +335,53 @@ class IDL_Rest_Api {
 		$download_id = (int) $request->get_param( 'download_id' );
 		$offset      = ( $page - 1 ) * $per_page;
 
-		// Build WHERE clause (already prepared if present).
-		$where = $download_id > 0 ? $wpdb->prepare( 'WHERE l.download_id = %d', $download_id ) : '';
-
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $where is already prepared above; $wpdb->prefix is safe; custom log table has no cache layer.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT l.id, l.download_id, p.post_title AS download_title,
-				        l.file_id, f.file_name, l.user_id, l.user_ip,
-				        l.user_agent, l.downloaded_at
-				   FROM {$wpdb->prefix}idl_download_log l
-				   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
-				   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
-				   $where
-				  ORDER BY l.downloaded_at DESC
-				  LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
-			)
-		);
-
-		$total = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log l $where"
-		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// Two-branch literal-prepare pattern: each branch passes a single string literal as
+		// the first arg of $wpdb->prepare(), so sniffs can verify safety without tracing
+		// concatenated $where/$base_sql variables.
+		if ( $download_id > 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- REST endpoint on custom log table; pagination prevents query-cache benefit.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_ip,
+					        l.user_agent, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE l.download_id = %d
+					  ORDER BY l.downloaded_at DESC
+					  LIMIT %d OFFSET %d",
+					$download_id,
+					$per_page,
+					$offset
+				)
+			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- REST endpoint on custom log table; count cannot be cached due to live filter.
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log l WHERE l.download_id = %d",
+					$download_id
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- REST endpoint on custom log table; pagination prevents query-cache benefit.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_ip,
+					        l.user_agent, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  ORDER BY l.downloaded_at DESC
+					  LIMIT %d OFFSET %d",
+					$per_page,
+					$offset
+				)
+			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- REST endpoint on custom log table; full-table count, no cache layer.
+			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log" );
+		}
 
 		$response = new WP_REST_Response( $rows ?? [], 200 );
 		$response->header( 'X-WP-Total', $total );

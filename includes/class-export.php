@@ -100,44 +100,80 @@ class IDL_Export {
 		global $wpdb;
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Filters are read-only; capability already checked.
-		$where_parts = [];
-		$where_args  = [];
-
-		$search = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
-		if ( $search !== '' ) {
-			$like          = '%' . $wpdb->esc_like( $search ) . '%';
-			$where_parts[] = '( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )';
-			$where_args[]  = $like;
-			$where_args[]  = $like;
-			$where_args[]  = $like;
-		}
-
+		$search          = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
 		$filter_download = isset( $_REQUEST['filter_download'] ) ? absint( $_REQUEST['filter_download'] ) : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$like = $search !== '' ? '%' . $wpdb->esc_like( $search ) . '%' : '';
+
+		// Two-branch literal-prepare: each branch passes a single string literal as the
+		// first arg of prepare(), so sniffs can verify the SQL without tracing variables.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Export endpoint on custom log table; result streamed, not reused.
+		if ( $search !== '' && $filter_download > 0 ) {
+			return $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
+					    AND l.download_id = %d
+					  ORDER BY l.downloaded_at DESC
+					  LIMIT 50000",
+					$like,
+					$like,
+					$like,
+					$filter_download
+				)
+			) ?? [];
+		}
+		if ( $search !== '' ) {
+			return $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
+					  ORDER BY l.downloaded_at DESC
+					  LIMIT 50000",
+					$like,
+					$like,
+					$like
+				)
+			) ?? [];
+		}
 		if ( $filter_download > 0 ) {
-			$where_parts[] = 'l.download_id = %d';
-			$where_args[]  = $filter_download;
+			return $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE l.download_id = %d
+					  ORDER BY l.downloaded_at DESC
+					  LIMIT 50000",
+					$filter_download
+				)
+			) ?? [];
 		}
-
-		$where_sql = $where_parts ? 'WHERE ' . implode( ' AND ', $where_parts ) : '';
-
-		$sql = "SELECT l.id, l.download_id, p.post_title AS download_title,
-		               l.file_id, f.file_name, l.user_id, l.user_login,
-		               l.ip_address, l.user_agent, l.referer, l.downloaded_at
-		          FROM {$wpdb->prefix}idl_download_log l
-		          LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
-		          LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
-		          $where_sql
-		         ORDER BY l.downloaded_at DESC
-		         LIMIT 50000";
-
-		if ( $where_args ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $sql built from static fragments with %s/%d placeholders; custom log table has no cache layer.
-			return $wpdb->get_results( $wpdb->prepare( $sql, ...$where_args ) ) ?? [];
-		}
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Static SQL with no user input; custom log table has no cache layer.
-		return $wpdb->get_results( $sql ) ?? [];
+		return $wpdb->get_results(
+			"SELECT l.id, l.download_id, p.post_title AS download_title,
+			        l.file_id, f.file_name, l.user_id, l.user_login,
+			        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+			   FROM {$wpdb->prefix}idl_download_log l
+			   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+			   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+			  ORDER BY l.downloaded_at DESC
+			  LIMIT 50000"
+		) ?? [];
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
 	// -------------------------------------------------------------------------

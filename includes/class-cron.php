@@ -66,6 +66,7 @@ class IDL_Cron {
 	private function recalculate_hot(): void {
 		global $wpdb;
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Daily cron on custom daily-counts table; cache layer would never be hit.
 		// Sum counts from the daily table for the last 7 days.
 		$hot_ids = $wpdb->get_col(
 			$wpdb->prepare(
@@ -107,6 +108,7 @@ class IDL_Cron {
 
 		update_option( 'idl_hot_downloads', $hot_with_counts, false );
 		update_option( 'idl_hot_calculated_at', current_time( 'mysql' ), false );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		do_action( 'idl_hot_recalculated', $hot_ids );
 	}
@@ -119,6 +121,7 @@ class IDL_Cron {
 		global $wpdb;
 
 		// Keep 8 days so the 7-day window always has full data.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Daily cron cleanup on custom daily-counts table.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->prefix}idl_download_daily

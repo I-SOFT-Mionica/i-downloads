@@ -142,50 +142,128 @@ class IDL_Log_Table extends WP_List_Table {
 
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		// Build WHERE
-		$where_parts = [];
-		$where_args  = [];
+		// Two-branch literal-prepare pattern: each branch passes a single string literal as
+		// the first arg of prepare(). $orderby is allowlisted at lines 137-140; $order is
+		// hardcoded to ASC|DESC at line 141, so the two remaining interpolations are safe.
+		$like = $search !== '' ? '%' . $wpdb->esc_like( $search ) . '%' : '';
 
-		if ( $search !== '' ) {
-			$like          = '%' . $wpdb->esc_like( $search ) . '%';
-			$where_parts[] = '( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )';
-			$where_args[]  = $like;
-			$where_args[]  = $like;
-			$where_args[]  = $like;
-		}
-
-		if ( $filter_download > 0 ) {
-			$where_parts[] = 'l.download_id = %d';
-			$where_args[]  = $filter_download;
-		}
-
-		$where_sql = $where_parts ? 'WHERE ' . implode( ' AND ', $where_parts ) : '';
-
-		$base_sql = "FROM {$wpdb->prefix}idl_download_log l
-		             LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
-		             LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
-		             $where_sql";
-
-		// Total count
-		if ( $where_args ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $base_sql built from static strings with %s/%d placeholders; custom log table has no cache layer.
-			$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) $base_sql", ...$where_args ) );
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- WP_List_Table on custom log table; pagination/filtering prevents query-cache benefit.
+		if ( $search !== '' && $filter_download > 0 ) {
+			$total       = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*)
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
+					    AND l.download_id = %d",
+					$like,
+					$like,
+					$like,
+					$filter_download
+				)
+			);
+			$this->items = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
+					    AND l.download_id = %d
+					  ORDER BY {$orderby} {$order}
+					  LIMIT %d OFFSET %d",
+					$like,
+					$like,
+					$like,
+					$filter_download,
+					$per_page,
+					$offset
+				)
+			) ?? [];
+		} elseif ( $search !== '' ) {
+			$total       = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*)
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )",
+					$like,
+					$like,
+					$like
+				)
+			);
+			$this->items = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
+					  ORDER BY {$orderby} {$order}
+					  LIMIT %d OFFSET %d",
+					$like,
+					$like,
+					$like,
+					$per_page,
+					$offset
+				)
+			) ?? [];
+		} elseif ( $filter_download > 0 ) {
+			$total       = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*)
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE l.download_id = %d",
+					$filter_download
+				)
+			);
+			$this->items = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  WHERE l.download_id = %d
+					  ORDER BY {$orderby} {$order}
+					  LIMIT %d OFFSET %d",
+					$filter_download,
+					$per_page,
+					$offset
+				)
+			) ?? [];
 		} else {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Static SQL, custom log table has no cache layer.
-			$total = (int) $wpdb->get_var( "SELECT COUNT(*) $base_sql" );
+			$total       = (int) $wpdb->get_var(
+				"SELECT COUNT(*)
+				   FROM {$wpdb->prefix}idl_download_log l
+				   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+				   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id"
+			);
+			$this->items = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT l.id, l.download_id, p.post_title AS download_title,
+					        l.file_id, f.file_name, l.user_id, l.user_login,
+					        l.ip_address, l.user_agent, l.referer, l.downloaded_at
+					   FROM {$wpdb->prefix}idl_download_log l
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
+					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
+					  ORDER BY {$orderby} {$order}
+					  LIMIT %d OFFSET %d",
+					$per_page,
+					$offset
+				)
+			) ?? [];
 		}
-
-		// Rows — build full query. $orderby is allowlisted above; $order is hardcoded ASC|DESC.
-		$select_sql = "SELECT l.id, l.download_id, p.post_title AS download_title,
-		                      l.file_id, f.file_name, l.user_id, l.user_login,
-		                      l.ip_address, l.user_agent, l.referer, l.downloaded_at
-		               $base_sql
-		               ORDER BY $orderby $order
-		               LIMIT %d OFFSET %d";
-
-		$query_args = array_merge( $where_args, [ $per_page, $offset ] );
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $select_sql built from static fragments; $orderby allowlisted, $order hardcoded.
-		$this->items = $wpdb->get_results( $wpdb->prepare( $select_sql, ...$query_args ) ) ?? [];
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		$this->set_pagination_args(
 			[

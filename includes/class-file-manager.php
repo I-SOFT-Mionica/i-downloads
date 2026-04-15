@@ -5,9 +5,25 @@ class IDL_File_Manager {
 
 	private string $table;
 
+	public const CACHE_GROUP = 'idl_files';
+
 	public function __construct() {
 		global $wpdb;
 		$this->table = "{$wpdb->prefix}idl_files";
+	}
+
+	/**
+	 * Invalidate cached reads for a download and (optionally) a single file row.
+	 * Public so external mutators (broken-links AJAX, file integrity scan,
+	 * category-folder move) can bust without re-instantiating the manager.
+	 */
+	public static function bust_cache_for( int $download_id, ?int $file_id = null ): void {
+		if ( $download_id > 0 ) {
+			wp_cache_delete( "files_for_download_{$download_id}", self::CACHE_GROUP );
+		}
+		if ( null !== $file_id && $file_id > 0 ) {
+			wp_cache_delete( "file_{$file_id}", self::CACHE_GROUP );
+		}
 	}
 
 	/**
@@ -16,28 +32,46 @@ class IDL_File_Manager {
 	 * @return object[]
 	 */
 	public function get_files( int $download_id ): array {
+		$key    = "files_for_download_{$download_id}";
+		$cached = wp_cache_get( $key, self::CACHE_GROUP );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
-		return $wpdb->get_results(
+		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 				"SELECT * FROM {$this->table} WHERE download_id = %d ORDER BY sort_order ASC, id ASC",
 				$download_id
 			)
 		) ?: [];
+
+		wp_cache_set( $key, $rows, self::CACHE_GROUP, HOUR_IN_SECONDS );
+		return $rows;
 	}
 
 	/**
 	 * Get a single file record.
 	 */
 	public function get_file( int $file_id ): ?object {
+		$key    = "file_{$file_id}";
+		$cached = wp_cache_get( $key, self::CACHE_GROUP );
+		if ( false !== $cached ) {
+			return $cached ?: null;
+		}
+
 		global $wpdb;
-		return $wpdb->get_row(
+		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 				"SELECT * FROM {$this->table} WHERE id = %d",
 				$file_id
 			)
 		) ?: null;
+
+		wp_cache_set( $key, $row, self::CACHE_GROUP, HOUR_IN_SECONDS );
+		return $row;
 	}
 
 	/**
@@ -80,6 +114,7 @@ class IDL_File_Manager {
 			$formats[]     = '%d';
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$result = $wpdb->insert( $this->table, $data, $formats );
 
 		if ( false === $result ) {
@@ -87,6 +122,7 @@ class IDL_File_Manager {
 		}
 
 		$file_id = (int) $wpdb->insert_id;
+		self::bust_cache_for( $download_id, $file_id );
 		do_action( 'idl_file_uploaded', $file_id, $download_id );
 		return $file_id;
 	}
@@ -97,6 +133,7 @@ class IDL_File_Manager {
 	public function add_external_link( int $download_id, string $url, array $args = [] ): int|false {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$result = $wpdb->insert(
 			$this->table,
 			[
@@ -116,6 +153,7 @@ class IDL_File_Manager {
 		}
 
 		$file_id = (int) $wpdb->insert_id;
+		self::bust_cache_for( $download_id, $file_id );
 		do_action( 'idl_file_uploaded', $file_id, $download_id );
 		return $file_id;
 	}
@@ -127,6 +165,7 @@ class IDL_File_Manager {
 	 */
 	public function update_meta( int $file_id, string $title, string $description ): bool {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$result = $wpdb->update(
 			$this->table,
 			[
@@ -137,7 +176,30 @@ class IDL_File_Manager {
 			[ '%s', '%s' ],
 			[ '%d' ]
 		);
+		if ( false !== $result ) {
+			$row = $this->get_file_uncached( $file_id );
+			if ( $row ) {
+				self::bust_cache_for( (int) $row->download_id, $file_id );
+			} else {
+				wp_cache_delete( "file_{$file_id}", self::CACHE_GROUP );
+			}
+		}
 		return false !== $result;
+	}
+
+	/**
+	 * Bypass the cache layer when the manager itself needs the canonical row
+	 * (e.g. to look up download_id during an invalidation).
+	 */
+	private function get_file_uncached( int $file_id ): ?object {
+		global $wpdb;
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Cache-bypass lookup used during cache invalidation; caching here would defeat the purpose.
+				"SELECT * FROM {$this->table} WHERE id = %d",
+				$file_id
+			)
+		) ?: null;
 	}
 
 	/**
@@ -155,7 +217,12 @@ class IDL_File_Manager {
 
 		do_action( 'idl_file_deleted', $file_id, (int) $file->download_id );
 
-		return false !== $wpdb->delete( $this->table, [ 'id' => $file_id ], [ '%d' ] );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
+		$result = $wpdb->delete( $this->table, [ 'id' => $file_id ], [ '%d' ] );
+		if ( false !== $result ) {
+			self::bust_cache_for( (int) $file->download_id, $file_id );
+		}
+		return false !== $result;
 	}
 
 	/**
@@ -164,22 +231,23 @@ class IDL_File_Manager {
 	public function increment_count( int $file_id, int $download_id ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counter increment on custom table; cache invalidated below.
 		$wpdb->query(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 				"UPDATE {$this->table} SET download_count = download_count + 1 WHERE id = %d",
 				$file_id
 			)
 		);
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregate over custom table immediately after write; freshness required.
 		$total = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
 				"SELECT SUM(download_count) FROM {$this->table} WHERE download_id = %d",
 				$download_id
 			)
 		);
 		update_post_meta( $download_id, '_idl_download_count', $total );
+		self::bust_cache_for( $download_id, $file_id );
 	}
 
 	/**
@@ -203,14 +271,25 @@ class IDL_File_Manager {
 	 */
 	public function update_sort_order( array $order ): void {
 		global $wpdb;
+		$download_ids = [];
 		foreach ( $order as $file_id => $sort_order ) {
+			$file_id = absint( $file_id );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->update(
 				$this->table,
 				[ 'sort_order' => absint( $sort_order ) ],
-				[ 'id' => absint( $file_id ) ],
+				[ 'id' => $file_id ],
 				[ '%d' ],
 				[ '%d' ]
 			);
+			$row = $this->get_file_uncached( $file_id );
+			if ( $row ) {
+				$download_ids[ (int) $row->download_id ] = true;
+			}
+			wp_cache_delete( "file_{$file_id}", self::CACHE_GROUP );
+		}
+		foreach ( array_keys( $download_ids ) as $download_id ) {
+			self::bust_cache_for( (int) $download_id );
 		}
 	}
 }

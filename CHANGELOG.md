@@ -2,6 +2,19 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.4.8] — 2026-04-15
+
+### Added
+- **Object cache layer** for `IDL_File_Manager` and `IDL_License_Manager`. Hot-path reads (`get_files`, `get_file`, `get_all`, `get`) cache under the `idl_files` / `idl_licenses` groups with `HOUR_IN_SECONDS` TTL. On a 60-item download listing this collapses N+1 file lookups to a single warm-up query plus cache hits. All write paths bust the affected keys via a per-download + per-file key helper; `IDL_File_Manager::bust_cache_for()` is exposed as a public static for external callers (broken-links AJAX, integrity scan, category-folder rename).
+- **5-minute transient cache** for the stats dashboard. New `idl_get_stats_overview()` helper in `includes/functions.php` wraps four `COUNT(*)`s + three aggregates behind a single `idl_stats_overview` transient; admin dashboard and REST `stats/overview` share the same cache.
+- **`FileManagerCacheTest`** and **`LicenseManagerCacheTest`** — 12 new phpunit tests covering prime, hit, and every write-path bust (`add_external_link`, `update_meta`, `delete_file`, `increment_count`, `update_sort_order`), plus external `bust_cache_for()` invalidation.
+
+### Changed
+- **SQL-fragment refactor** in `class-log-table::prepare_items`, `class-export::fetch_rows`, and `class-rest-api::get_logs`. Removed the `$base_sql` / `$where` string-building pattern; each call site now branches on the filter state and passes `$wpdb->prepare()` a single literal SQL string per branch. The `ORDER BY $orderby $order` interpolations stay — `$orderby` is allowlisted and `$order` is hardcoded `ASC|DESC` — but static analysis can now verify the prepare first-arg is a literal. This eliminates every `InterpolatedNotPrepared` and `UnescapedDBParameter` warning on those three files without a single suppression.
+- **`IDL_File_Integrity`** — inlined `{$wpdb->prefix}idl_files` at all six query sites (the `$table` local was a readability shortcut that cost a sniff hit per use). `run_scheduled_check` loop body wrapped in a rationale-tagged `phpcs:disable` block.
+- **`IDL_Broken_Links_Ajax`** — cache busts centralized in `refresh_inode` and `mark_healthy` (the two chokepoints every handler goes through), plus explicit busts at the reassign sibling-loop and split handler. Class-level `phpcs:disable` with rationale (every `handle_*` calls `$this->guard()` which runs `check_ajax_referer`; the sniff cannot follow the indirection).
+- **Structured suppression sweep** — every remaining `phpcs:ignore` across `class-activator`, `class-deactivator`, `class-cron`, `class-download-logger`, `class-category-folders`, `class-admin-meta-boxes`, `class-admin-columns`, `class-download-handler` (the deliberate `wp_redirect` for off-site external links), `class-shortcodes`, `class-tinymce`, `admin/views/settings-page.php`, and `admin/views/log-viewer.php` now carries a rationale a reviewer can verify locally (write-path / cron / activator / one-shot / false-positive / index-backed slow-query hint / read-only display filter).
+
 ## [0.4.7] — 2026-04-15
 
 ### Added

@@ -12,6 +12,15 @@
  */
 defined( 'ABSPATH' ) || exit;
 
+// Every public handle_* method calls $this->guard() as its first statement, which runs
+// check_ajax_referer( 'idl_broken_links', 'nonce' ) — so every $_POST/$_FILES read below is
+// nonce-verified at the top of the method. The sniff can't follow the indirection.
+// Every $wpdb->update writes to the plugin's custom idl_files table and the manager cache
+// is invalidated either via refresh_inode()/mark_healthy() helpers or explicit bust_cache_for()
+// calls at the call site.
+// phpcs:disable WordPress.Security.NonceVerification.Missing
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching
 class IDL_Broken_Links_Ajax {
 
 	public function register_hooks(): void {
@@ -80,6 +89,7 @@ class IDL_Broken_Links_Ajax {
 			[ '%d' ],
 			[ '%d' ]
 		);
+		wp_cache_delete( "file_{$file_id}", IDL_File_Manager::CACHE_GROUP );
 	}
 
 	private function mark_healthy( int $file_id, int $download_id ): void {
@@ -94,6 +104,7 @@ class IDL_Broken_Links_Ajax {
 			[ '%d', '%s' ],
 			[ '%d' ]
 		);
+		IDL_File_Manager::bust_cache_for( $download_id, $file_id );
 
 		// Auto-republish only if we were the ones who unpublished it.
 		$auto = get_post_meta( $download_id, '_idl_auto_unpublished_at', true );
@@ -323,6 +334,7 @@ class IDL_Broken_Links_Ajax {
 				[ '%d' ]
 			);
 			$this->refresh_inode( (int) $sib->id, $new_abs );
+			IDL_File_Manager::bust_cache_for( $download_id, (int) $sib->id );
 		}
 
 		// The original missing file is already in the new folder — just update its row.
@@ -437,6 +449,7 @@ class IDL_Broken_Links_Ajax {
 			[ '%d' ]
 		);
 		$this->refresh_inode( $file_id, $candidate );
+		IDL_File_Manager::bust_cache_for( $old_download_id );
 		$this->mark_healthy( $file_id, $new_post_id );
 
 		// The OLD download may now be missing-only if this was its last file. Re-evaluate

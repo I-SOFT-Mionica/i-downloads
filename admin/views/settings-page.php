@@ -5,7 +5,8 @@
 	<?php settings_errors( 'idl_settings' ); ?>
 
 	<?php
-	$active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only tab selector; nonce belongs on form submit, not nav.
+	$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
 	$tabs       = [
 		'general'     => __( 'General', 'i-downloads' ),
 		'display'     => __( 'Display', 'i-downloads' ),

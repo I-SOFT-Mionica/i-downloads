@@ -52,8 +52,10 @@ $base_url = admin_url( 'edit.php?post_type=idl&page=idl-log' );
 
 	<?php
 	// Show purge notice.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flash message after redirect; no state change.
 	if ( isset( $_GET['purged'] ) ) {
-		$purged = absint( $_GET['purged'] );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only flash message after redirect; no state change.
+		$purged = absint( wp_unslash( $_GET['purged'] ) );
 		echo '<div class="notice notice-success is-dismissible"><p>';
 		/* translators: %d: number of entries deleted */
 		printf( esc_html__( '%d log entries deleted.', 'i-downloads' ), (int) $purged );

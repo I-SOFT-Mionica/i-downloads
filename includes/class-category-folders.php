@@ -91,6 +91,7 @@ class IDL_Category_Folders {
 	private static function force_latin_slug( int $term_id ): bool {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Slug inspection on wp_terms; WP core caches are busted via clean_term_cache() below.
 		$current = $wpdb->get_var(
 			$wpdb->prepare( "SELECT slug FROM {$wpdb->terms} WHERE term_id = %d", $term_id )
 		);
@@ -115,6 +116,7 @@ class IDL_Category_Folders {
 		// Ensure uniqueness across all terms (WP enforces unique slugs globally).
 		$unique = $latin;
 		$i      = 2;
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Slug uniqueness loop + direct update on wp_terms; WP core term cache flushed via clean_term_cache() below.
 		while ( $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT term_id FROM {$wpdb->terms} WHERE slug = %s AND term_id <> %d LIMIT 1",
@@ -133,6 +135,7 @@ class IDL_Category_Folders {
 			[ '%s' ],
 			[ '%d' ]
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		clean_term_cache( $term_id, 'idl_category' );
 		return true;
 	}
@@ -222,6 +225,7 @@ class IDL_Category_Folders {
 		$old_prefix = "{$old_rel}/";
 		$new_prefix = "{$new_rel}/";
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Bulk path rewrite on custom idl_files table after folder rename; cache flushed below.
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$wpdb->prefix}idl_files
@@ -232,6 +236,9 @@ class IDL_Category_Folders {
 				$wpdb->esc_like( $old_prefix ) . '%'
 			)
 		);
+		// Bulk update touched an unknown number of rows across multiple downloads — flush
+		// the whole cache group so every download_id key is re-read on next hit.
+		wp_cache_flush_group( IDL_File_Manager::CACHE_GROUP );
 
 		do_action( 'idl_category_folder_renamed', $term_id, $old_rel, $new_rel );
 	}
@@ -247,6 +254,7 @@ class IDL_Category_Folders {
 
 		// Count downloads still assigned to this category.
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Pre-delete guard on core taxonomy tables; freshness required to block orphaning.
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*)
@@ -388,6 +396,7 @@ class IDL_Category_Folders {
 	public static function move_download_files( int $download_id, int $new_category_id ): true|WP_Error {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Category reassign walks files of one download; cache busted at end of loop.
 		$files = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT id, file_path, file_name FROM {$wpdb->prefix}idl_files WHERE download_id = %d",
@@ -440,6 +449,7 @@ class IDL_Category_Folders {
 
 			// Update the stored path
 			$new_rel = idl_category_folder_path( $new_category_id ) . '/' . $file->file_name;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Path rewrite on custom idl_files table; cache busted below.
 			$wpdb->update(
 				"{$wpdb->prefix}idl_files",
 				[ 'file_path' => $new_rel ],
@@ -449,6 +459,7 @@ class IDL_Category_Folders {
 			);
 		}
 
+		IDL_File_Manager::bust_cache_for( $download_id );
 		return true;
 	}
 }

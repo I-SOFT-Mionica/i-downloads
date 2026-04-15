@@ -168,14 +168,14 @@ class IDL_Log_Table extends WP_List_Table {
 
 		// Total count
 		if ( $where_args ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $base_sql built from static strings with %s/%d placeholders; custom log table has no cache layer.
 			$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) $base_sql", ...$where_args ) );
 		} else {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Static SQL, custom log table has no cache layer.
 			$total = (int) $wpdb->get_var( "SELECT COUNT(*) $base_sql" );
 		}
 
-		// Rows — build full query
+		// Rows — build full query. $orderby is allowlisted above; $order is hardcoded ASC|DESC.
 		$select_sql = "SELECT l.id, l.download_id, p.post_title AS download_title,
 		                      l.file_id, f.file_name, l.user_id, l.user_login,
 		                      l.ip_address, l.user_agent, l.referer, l.downloaded_at
@@ -184,7 +184,7 @@ class IDL_Log_Table extends WP_List_Table {
 		               LIMIT %d OFFSET %d";
 
 		$query_args = array_merge( $where_args, [ $per_page, $offset ] );
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $select_sql built from static fragments; $orderby allowlisted, $order hardcoded.
 		$this->items = $wpdb->get_results( $wpdb->prepare( $select_sql, ...$query_args ) ) ?? [];
 
 		$this->set_pagination_args(

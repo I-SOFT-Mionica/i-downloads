@@ -132,11 +132,11 @@ class IDL_Export {
 		         LIMIT 50000";
 
 		if ( $where_args ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $sql built from static fragments with %s/%d placeholders; custom log table has no cache layer.
 			return $wpdb->get_results( $wpdb->prepare( $sql, ...$where_args ) ) ?? [];
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Static SQL with no user input; custom log table has no cache layer.
 		return $wpdb->get_results( $sql ) ?? [];
 	}
 
@@ -160,6 +160,7 @@ class IDL_Export {
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- php://output stream, WP_Filesystem not applicable.
 		$out = fopen( 'php://output', 'w' );
 
 		// UTF-8 BOM so Excel opens it correctly.
@@ -202,6 +203,7 @@ class IDL_Export {
 			);
 		}
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- php://output stream, WP_Filesystem not applicable.
 		fclose( $out );
 		exit;
 	}

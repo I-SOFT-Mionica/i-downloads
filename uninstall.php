@@ -14,13 +14,14 @@ if ( ! get_option( 'idl_delete_data_on_uninstall' ) ) {
 
 global $wpdb;
 
-// Drop custom tables
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange -- Uninstall runs once; table drop cannot go through higher-level APIs.
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}idl_files" );
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}idl_download_log" );
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}idl_licenses" );
 
 // Delete all idl posts and their meta
 $post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'idl'" );
+// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange
 foreach ( $post_ids as $post_id ) {
 	wp_delete_post( (int) $post_id, true );
 }
@@ -69,15 +70,12 @@ foreach ( $role_names as $role_name ) {
 $upload_dir  = wp_upload_dir();
 $custom_dir  = $upload_dir['basedir'] . '/idl-files';
 if ( is_dir( $custom_dir ) ) {
-	// Recursive delete
-	$iterator = new RecursiveIteratorIterator(
-		new RecursiveDirectoryIterator( $custom_dir, FilesystemIterator::SKIP_DOTS ),
-		RecursiveIteratorIterator::CHILD_FIRST
-	);
-	foreach ( $iterator as $file ) {
-		$file->isDir() ? rmdir( $file->getPathname() ) : unlink( $file->getPathname() );
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	global $wp_filesystem;
+	if ( ! $wp_filesystem ) {
+		WP_Filesystem();
 	}
-	rmdir( $custom_dir );
+	$wp_filesystem->delete( $custom_dir, true, 'd' );
 }
 
 flush_rewrite_rules();

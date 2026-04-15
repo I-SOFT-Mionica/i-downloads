@@ -96,26 +96,42 @@ class IDL_Broken_Links_Table extends WP_List_Table {
 		$offset       = ( $current_page - 1 ) * $per_page;
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- WP_List_Table uses $_REQUEST for sorting.
-		$order = isset( $_REQUEST['order'] ) && strtoupper( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) ) === 'ASC' ? 'ASC' : 'DESC';
+		$ascending = isset( $_REQUEST['order'] ) && 'ASC' === strtoupper( sanitize_text_field( wp_unslash( $_REQUEST['order'] ) ) );
 		// phpcs:enable
 
-		$total = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files WHERE is_missing = 1"
-		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table lookup for admin Broken Links screen.
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_files WHERE is_missing = 1" );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $order is whitelisted above.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT f.*, p.post_title AS download_title
-				   FROM {$wpdb->prefix}idl_files f
-				   LEFT JOIN {$wpdb->posts} p ON p.ID = f.download_id
-				  WHERE f.is_missing = 1
-				  ORDER BY f.missing_since $order
-				  LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
-			)
-		);
+		// Two separate prepared statements keep ORDER BY direction out of any interpolation path.
+		if ( $ascending ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table lookup.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT f.*, p.post_title AS download_title
+					   FROM {$wpdb->prefix}idl_files f
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = f.download_id
+					  WHERE f.is_missing = 1
+					  ORDER BY f.missing_since ASC
+					  LIMIT %d OFFSET %d",
+					$per_page,
+					$offset
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table lookup.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT f.*, p.post_title AS download_title
+					   FROM {$wpdb->prefix}idl_files f
+					   LEFT JOIN {$wpdb->posts} p ON p.ID = f.download_id
+					  WHERE f.is_missing = 1
+					  ORDER BY f.missing_since DESC
+					  LIMIT %d OFFSET %d",
+					$per_page,
+					$offset
+				)
+			);
+		}
 
 		// Enrich each row with category name (one term per download — uses primary category).
 		foreach ( $rows as $row ) {

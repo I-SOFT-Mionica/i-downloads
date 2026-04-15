@@ -298,7 +298,23 @@ class IDL_Admin_Meta_Boxes {
 		IDL_Category_Folders::ensure( $category_id );
 		$target_abs = idl_category_fs_path( $category_id ) . '/' . $slug;
 
-		if ( ! move_uploaded_file( $upload['tmp_name'], $target_abs ) ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$handled = wp_handle_upload(
+			$_FILES['file'], // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wp_handle_upload validates.
+			[
+				'test_form' => false,
+				'action'    => 'idl_upload_file',
+			]
+		);
+		if ( isset( $handled['error'] ) ) {
+			wp_send_json_error( [ 'message' => $handled['error'] ] );
+		}
+
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			WP_Filesystem();
+		}
+		if ( ! $wp_filesystem->move( $handled['file'], $target_abs, true ) ) {
 			wp_send_json_error( [ 'message' => __( 'Failed to save the uploaded file.', 'i-downloads' ) ] );
 		}
 

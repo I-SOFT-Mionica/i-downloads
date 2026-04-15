@@ -64,7 +64,7 @@ add_action(
 add_action(
 	'plugins_loaded',
 	function (): void {
-		new IDL_I18n()->load_plugin_textdomain();
+		// Translations for wp.org-hosted plugins are auto-loaded by WordPress since 4.6.
 
 		// Core registrations
 		new IDL_Post_Type()->register_hooks();

@@ -8,7 +8,7 @@ Stable tag: 0.4.7
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Hierarchical file download manager for WordPress. Category-as-folder storage, multi-file entries, per-user write ACL, secure download handler, and audit logging.
+Hierarchical file download manager. Category-as-folder storage, multi-file entries, per-user ACL, and audit logging.
 
 == Description ==
 

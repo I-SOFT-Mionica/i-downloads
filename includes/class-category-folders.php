@@ -19,6 +19,15 @@ class IDL_Category_Folders {
 	/** Captured before term edit so we can detect slug / parent changes. */
 	private static array $pre_edit_path = [];
 
+	private static function wp_fs() {
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+		return $wp_filesystem;
+	}
+
 	public function register_hooks(): void {
 		// Intercept the slug inside wp_insert_term() before it is stored.
 		add_filter( 'pre_term_slug', [ $this, 'filter_pre_term_slug' ], 10, 2 );
@@ -189,8 +198,7 @@ class IDL_Category_Folders {
 		if ( file_exists( $old_fs ) ) {
 			wp_mkdir_p( dirname( $new_fs ) );
 
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Direct filesystem operation, no FTP abstraction needed.
-			if ( ! rename( $old_fs, $new_fs ) ) {
+			if ( ! self::wp_fs()->move( $old_fs, $new_fs, false ) ) {
 				add_action(
 					'admin_notices',
 					function () use ( $old_rel, $new_rel ): void {
@@ -284,7 +292,7 @@ class IDL_Category_Folders {
 		);
 
 		if ( empty( $contents ) ) {
-			rmdir( $fs_path );
+			self::wp_fs()->rmdir( $fs_path, false );
 		} else {
 			// Folder has leftover files not tracked in DB — leave it, warn admin.
 			add_action(
@@ -419,7 +427,7 @@ class IDL_Category_Folders {
 				);
 			}
 
-			if ( ! rename( $old_abs, $new_abs ) ) {
+			if ( ! self::wp_fs()->move( $old_abs, $new_abs, false ) ) {
 				return new WP_Error(
 					'idl_rename_failed',
 					sprintf(

@@ -370,7 +370,7 @@ class IDL_Rest_Api {
 		// Build WHERE clause (already prepared if present).
 		$where = $download_id > 0 ? $wpdb->prepare( 'WHERE l.download_id = %d', $download_id ) : '';
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $where is already prepared above; $wpdb->prefix is safe.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- $where is already prepared above; $wpdb->prefix is safe; custom log table has no cache layer.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT l.id, l.download_id, p.post_title AS download_title,
@@ -390,7 +390,7 @@ class IDL_Rest_Api {
 		$total = (int) $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log l $where"
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		$response = new WP_REST_Response( $rows ?? [], 200 );
 		$response->header( 'X-WP-Total', $total );

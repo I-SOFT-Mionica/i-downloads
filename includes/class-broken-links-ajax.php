@@ -55,6 +55,15 @@ class IDL_Broken_Links_Ajax {
 		return (int) $terms[0]->term_id;
 	}
 
+	private function wp_fs() {
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+		return $wp_filesystem;
+	}
+
 	private function refresh_inode( int $file_id, string $abs_path ): void {
 		if ( ! (bool) get_option( 'idl_integrity_use_inode', 1 ) ) {
 			return;
@@ -181,8 +190,8 @@ class IDL_Broken_Links_Ajax {
 			wp_send_json_error( [ 'message' => __( 'A file with this name already exists at the expected path.', 'i-downloads' ) ], 409 );
 		}
 
-		if ( ! @rename( $candidate, $target_abs ) ) {
-			wp_send_json_error( [ 'message' => __( 'Filesystem rename failed. Check directory permissions.', 'i-downloads' ) ], 500 );
+		if ( ! $this->wp_fs()->move( $candidate, $target_abs, false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Filesystem move failed. Check directory permissions.', 'i-downloads' ) ], 500 );
 		}
 
 		$new_rel = ltrim(
@@ -299,8 +308,8 @@ class IDL_Broken_Links_Ajax {
 					409
 				);
 			}
-			if ( ! @rename( $old_abs, $new_abs ) ) {
-				wp_send_json_error( [ 'message' => __( 'Filesystem rename failed during sibling move. No changes committed to the DB.', 'i-downloads' ) ], 500 );
+			if ( ! $this->wp_fs()->move( $old_abs, $new_abs, false ) ) {
+				wp_send_json_error( [ 'message' => __( 'Filesystem move failed during sibling move. No changes committed to the DB.', 'i-downloads' ) ], 500 );
 			}
 			$new_rel = ltrim(
 				str_replace( '\\', '/', substr( $new_abs, strlen( idl_files_dir() ) ) ),
@@ -454,11 +463,10 @@ class IDL_Broken_Links_Ajax {
 		$file_id = isset( $_POST['file_id'] ) ? absint( $_POST['file_id'] ) : 0;
 		$file    = $this->get_file_or_die( $file_id );
 
-		if ( empty( $_FILES['replacement'] ) || ! is_uploaded_file( $_FILES['replacement']['tmp_name'] ?? '' ) ) {
+		if ( empty( $_FILES['replacement'] ) ) {
 			wp_send_json_error( [ 'message' => __( 'No file uploaded.', 'i-downloads' ) ], 400 );
 		}
 
-		$tmp          = $_FILES['replacement']['tmp_name']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$expected_cat = $this->get_download_category_id( (int) $file->download_id );
 		if ( ! $expected_cat ) {
 			wp_send_json_error( [ 'message' => __( 'This download has no category.', 'i-downloads' ) ], 400 );
@@ -469,7 +477,21 @@ class IDL_Broken_Links_Ajax {
 		}
 		$target_abs = $target_dir . '/' . basename( (string) $file->file_name );
 
-		if ( ! @move_uploaded_file( $tmp, $target_abs ) ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$upload = wp_handle_upload(
+			$_FILES['replacement'], // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wp_handle_upload validates.
+			[
+				'test_form' => false,
+				'action'    => 'idl_recover_reupload',
+			]
+		);
+		if ( isset( $upload['error'] ) ) {
+			wp_send_json_error( [ 'message' => $upload['error'] ], 500 );
+		}
+		if ( file_exists( $target_abs ) ) {
+			wp_delete_file( $target_abs );
+		}
+		if ( ! $this->wp_fs()->move( $upload['file'], $target_abs, true ) ) {
 			wp_send_json_error( [ 'message' => __( 'Failed to write the uploaded file to the expected path.', 'i-downloads' ) ], 500 );
 		}
 

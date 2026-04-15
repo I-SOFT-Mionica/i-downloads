@@ -1,0 +1,29 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "i-downloads/download-list",
+	"version": "0.1.0",
+	"title": "Download List [iD]",
+	"category": "i-downloads",
+	"icon": "download",
+	"description": "Display a list of downloads, optionally filtered by category or tag.",
+	"textdomain": "i-downloads",
+	"supports": {
+		"html": false,
+		"color": true,
+		"typography": true,
+		"spacing": true
+	},
+	"attributes": {
+		"category":              { "type": "number",  "default": 0 },
+		"includeSubcategories":  { "type": "boolean", "default": true },
+		"tag":                   { "type": "number",  "default": 0 },
+		"limit":                 { "type": "number",  "default": 10 },
+		"orderby":               { "type": "string",  "default": "date" },
+		"order":                 { "type": "string",  "default": "DESC" },
+		"layout":                { "type": "string",  "default": "list" },
+		"showSearch":            { "type": "boolean", "default": false }
+	},
+	"editorScript": "file:../build/download-list.js",
+	"render": "file:./render.php"
+}

@@ -1,0 +1,16 @@
+const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
+const path          = require( 'path' );
+
+module.exports = {
+	...defaultConfig,
+	entry: {
+		'download-list':   './blocks/download-list/index.js',
+		'download-button': './blocks/download-button/index.js',
+		'category-grid':   './blocks/category-grid/index.js',
+	},
+	output: {
+		...defaultConfig.output,
+		filename: '[name].js',
+		path: path.resolve( process.cwd(), 'blocks/build' ),
+	},
+};

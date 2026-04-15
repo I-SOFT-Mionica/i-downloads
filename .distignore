@@ -1,0 +1,60 @@
+# .distignore — files/folders excluded when building a distributable zip
+# for WordPress.org or manual deployment. Consumed by `wp dist-archive` and
+# the plugin-build GitHub Actions.
+
+# ── Version control & meta ─────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+.github
+.vscode
+.idea
+.editorconfig
+.DS_Store
+Thumbs.db
+
+# ── Developer tooling ──────────────────────────────────────────────────
+node_modules
+vendor
+package.json
+package-lock.json
+composer.json
+composer.lock
+webpack.config.js
+.babelrc
+.eslintrc
+.eslintrc.js
+.eslintignore
+.prettierrc
+.prettierrc.js
+.stylelintrc
+.stylelintrc.json
+phpcs.xml
+phpcs.xml.dist
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+.phpunit.cache
+
+# ── Tests ──────────────────────────────────────────────────────────────
+tests
+bin
+
+# ── Source files (we ship the compiled /build/ output) ─────────────────
+blocks/*/edit.js
+blocks/*/index.js
+blocks/*/save.js
+blocks/*/block.json.bak
+src
+
+# ── Documentation (readme.txt is the canonical one for wp.org) ─────────
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+.distignore
+
+# ── Build artifacts & logs ─────────────────────────────────────────────
+debug.log
+*.log
+*.map
+.cache

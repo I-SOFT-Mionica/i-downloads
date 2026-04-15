@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<ruleset name="i-Downloads">
+	<description>PHPCS ruleset for i-Downloads WordPress plugin.</description>
+
+	<file>i-downloads.php</file>
+	<file>includes</file>
+	<file>admin</file>
+	<file>public</file>
+	<file>templates</file>
+
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+	<exclude-pattern>*/blocks/*/build/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<config name="minimum_supported_wp_version" value="6.6"/>
+	<config name="testVersion" value="8.4-"/>
+
+	<rule ref="WordPress">
+		<!-- Docblock noise: not required for WP.org submission. -->
+		<exclude name="Squiz.Commenting.FileComment"/>
+		<exclude name="Squiz.Commenting.ClassComment"/>
+		<exclude name="Squiz.Commenting.FunctionComment"/>
+		<exclude name="Squiz.Commenting.VariableComment"/>
+		<exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+		<exclude name="Generic.Commenting.DocComment.MissingShort"/>
+
+		<!-- File naming: this plugin uses a custom autoloader (class-foo.php), not WP core style. -->
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+
+		<!-- Stylistic: modern PHP 8.4 code, short ternaries intentional. -->
+		<exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
+		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
+
+		<!-- Prefer short array syntax [] over array(). -->
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax.Found"/>
+
+		<!-- Custom capabilities — the plugin registers its own caps via IDL_Activator. -->
+		<exclude name="WordPress.WP.Capabilities.Unknown"/>
+
+		<!-- Direct DB queries + caching: this is a download/log plugin; data freshness matters. Individual queries still use prepare(). -->
+		<exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
+		<exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
+		<exclude name="WordPress.DB.DirectDatabaseQuery.SchemaChange"/>
+		<exclude name="WordPress.DB.SlowDBQuery.slow_db_query_tax_query"/>
+		<exclude name="WordPress.DB.SlowDBQuery.slow_db_query_meta_key"/>
+	</rule>
+
+	<!-- Allow short prefix IDL_ for classes. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="IDL_"/>
+				<element value="idl_"/>
+				<element value="IDL"/>
+			</property>
+		</properties>
+		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed"/>
+	</rule>
+
+	<!-- View/template files are included from class methods; their "globals" are actually local vars. -->
+	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+		<exclude-pattern>*/views/*</exclude-pattern>
+		<exclude-pattern>*/templates/*</exclude-pattern>
+	</rule>
+
+	<!-- GlobalVariablesOverride: same rationale; $post, $wp_query etc. in template scope are not overrides. -->
+	<rule ref="WordPress.WP.GlobalVariablesOverride.Prohibited">
+		<exclude-pattern>*/views/*</exclude-pattern>
+		<exclude-pattern>*/templates/*</exclude-pattern>
+	</rule>
+</ruleset>

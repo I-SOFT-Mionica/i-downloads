@@ -1,0 +1,101 @@
+/**
+ * i-downloads/category-grid — Block editor component.
+ */
+import { __ } from '@wordpress/i18n';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import {
+	PanelBody,
+	SelectControl,
+	RangeControl,
+	ToggleControl,
+	Spinner,
+	Placeholder,
+} from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
+import { store as coreStore } from '@wordpress/core-data';
+
+export default function Edit( { attributes, setAttributes } ) {
+	const { parent, columns, showCount, showDescription } = attributes;
+	const blockProps = useBlockProps();
+
+	// Top-level categories for the parent picker
+	const topCategories = useSelect(
+		( select ) =>
+			select( coreStore ).getEntityRecords( 'taxonomy', 'idl_category', {
+				per_page: -1,
+				parent: 0,
+				_fields: 'id,name',
+				orderby: 'name',
+				order: 'asc',
+			} ),
+		[]
+	);
+
+	const parentOptions = [
+		{ label: __( '— Top level —', 'i-downloads' ), value: 0 },
+		...( topCategories ?? [] ).map( ( cat ) => ( {
+			label: cat.name,
+			value: cat.id,
+		} ) ),
+	];
+
+	return (
+		<>
+			<InspectorControls>
+				<PanelBody title={ __( 'Categories', 'i-downloads' ) }>
+					{ ! topCategories ? (
+						<Spinner />
+					) : (
+						<SelectControl
+							label={ __( 'Show children of', 'i-downloads' ) }
+							value={ parent }
+							options={ parentOptions }
+							onChange={ ( val ) => setAttributes( { parent: Number( val ) } ) }
+							help={ __( 'Select a parent to show its subcategories, or leave as top level.', 'i-downloads' ) }
+						/>
+					) }
+				</PanelBody>
+
+				<PanelBody title={ __( 'Display', 'i-downloads' ) }>
+					<RangeControl
+						label={ __( 'Columns', 'i-downloads' ) }
+						value={ columns }
+						onChange={ ( val ) => setAttributes( { columns: val } ) }
+						min={ 1 }
+						max={ 4 }
+					/>
+					<ToggleControl
+						label={ __( 'Show download count', 'i-downloads' ) }
+						checked={ showCount }
+						onChange={ ( val ) => setAttributes( { showCount: val } ) }
+					/>
+					<ToggleControl
+						label={ __( 'Show description', 'i-downloads' ) }
+						checked={ showDescription }
+						onChange={ ( val ) => setAttributes( { showDescription: val } ) }
+					/>
+				</PanelBody>
+			</InspectorControls>
+
+			<div { ...blockProps }>
+				<Placeholder
+					icon="grid-view"
+					label={ __( 'Download Category Grid', 'i-downloads' ) }
+					instructions={ __(
+						'Displays download categories as a grid. Configure in the sidebar. Preview renders on the frontend.',
+						'i-downloads'
+					) }
+				>
+					<p style={ { margin: 0, fontSize: '12px', opacity: 0.8 } }>
+						{ columns }
+						{ ' ' }
+						{ __( 'columns', 'i-downloads' ) }
+						{ parent > 0 &&
+							' · ' +
+								( parentOptions.find( ( o ) => o.value === parent )?.label ?? '' ) }
+					</p>
+				</Placeholder>
+			</div>
+		</>
+	);
+}

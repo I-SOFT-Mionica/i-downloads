@@ -1,0 +1,443 @@
+/*
+ * i-Downloads — Public Stylesheet
+ *
+ * Structural only — colors, fonts, and radii inherit from the active theme
+ * wherever possible. All spacing and typography use em/rem so the widget
+ * scales with the surrounding context.
+ *
+ * Responsive behavior uses @container queries (not media queries) so the
+ * widget adapts to whatever container it's dropped into — full-width post,
+ * narrow sidebar, two-column layout, etc. — independent of viewport size.
+ * Pixel values are reserved for: hairline borders, tap-target minimums,
+ * and dashicon glyph sizing.
+ */
+
+/* Establish the query container on the shortcode wrapper. Both the list/grid
+ * shortcode and any direct .idl-grid render become query containers. */
+.idl-list-wrap,
+.idl-grid,
+.idl-category-grid {
+	container-type: inline-size;
+}
+
+/* Grid layouts — auto-fill so cells never stretch wider than a card. */
+.idl-grid { display: grid; gap: 1.5rem; }
+.idl-grid--cols-2 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); }
+.idl-grid--cols-3 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); }
+.idl-grid--cols-4 { grid-template-columns: repeat(auto-fill, minmax(min(100%,  10rem), 1fr)); }
+
+/* Download card — structural */
+.idl-download-card { display: flex; flex-direction: column; }
+.idl-download-card__thumbnail img { display: block; width: 100%; height: auto; }
+.idl-download-card__actions { margin-top: auto; padding-top: .75em; }
+
+/* File list table */
+.idl-file-list { width: 100%; border-collapse: collapse; }
+.idl-file-list td,
+.idl-file-list th { padding: .5em .75em; text-align: left; }
+
+/* Meta badges */
+.idl-meta { display: inline-flex; align-items: center; gap: .25em; }
+
+/* ── Download card — JDownloads-style (list mode) ────────────────────────── */
+.idl-download-card {
+	border-bottom: 1px solid #e5e5e5;
+	padding: .5em 0;
+}
+.idl-download-card + .idl-download-card {
+	margin-top: 0;
+}
+.idl-download-card__title {
+	font-size: 1em;
+	margin: 0 0 .25em;
+}
+
+.idl-file-item {
+	display: flex;
+	align-items: center;
+	gap: .75em;
+	padding: .5em 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+.idl-file-item:last-child { border-bottom: none; }
+.idl-file-item--empty { color: #888; font-style: italic; }
+
+/* File type icon (list mode) */
+.idl-file-item__icon {
+	flex: 0 0 2.6em;
+	width: 2.6em;
+	height: 3.25em;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3px;
+	font-size: .625em;
+	font-weight: 700;
+	letter-spacing: .03em;
+	color: #fff;
+	background: #888;
+	text-transform: uppercase;
+}
+.idl-icon--pdf  { background: #c0392b; }
+.idl-icon--doc  { background: #2980b9; }
+.idl-icon--xls  { background: #27ae60; }
+.idl-icon--ppt  { background: #e67e22; }
+.idl-icon--zip  { background: #8e44ad; }
+.idl-icon--img  { background: #16a085; }
+.idl-icon--vid  { background: #2c3e50; }
+.idl-icon--aud  { background: #d35400; }
+.idl-icon--file { background: #7f8c8d; }
+
+/* Info column — grows */
+.idl-file-item__info { flex: 1 1 auto; min-width: 0; }
+.idl-file-item__title {
+	font-weight: 600;
+	margin-bottom: .2em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.idl-file-item__title a { text-decoration: none; }
+.idl-file-item__title a:hover { text-decoration: underline; }
+
+/* Meta row */
+.idl-file-item__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5em 1em;
+	font-size: .8em;
+	color: #666;
+}
+.idl-file-item__meta .idl-meta {
+	display: inline-flex;
+	align-items: center;
+	gap: .2em;
+}
+.idl-file-item__meta .dashicons {
+	/* Dashicons are glyph-font; sizing in px keeps them crisp across scales. */
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	line-height: 1;
+}
+
+/* Action column */
+.idl-file-item__action { flex: 0 0 auto; }
+
+/* HOT badge */
+.idl-badge--hot {
+	display: inline-block;
+	padding: .1em .4em;
+	font-size: .625em;
+	font-weight: 700;
+	border-radius: 2px;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	background: #e74c3c;
+	color: #fff;
+	vertical-align: middle;
+	margin-left: .3em;
+}
+
+/* Agreement modal overlay — hidden by default, shown via .is-open */
+.idl-modal-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .6);
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+.idl-modal-overlay.is-open {
+	display: flex;
+}
+.idl-modal {
+	max-width: 38rem;
+	width: 90%;
+	max-height: 80vh;
+	overflow-y: auto;
+	padding: 2em;
+}
+.idl-modal__license-text {
+	max-height: 13rem;
+	overflow-y: auto;
+	padding: .75em;
+	margin: 1em 0;
+}
+
+/* Download button — uses WP standard class; we only add structural tweaks */
+.idl-download-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: .4em;
+	width: fit-content;
+	width: -moz-fit-content; /* Firefox < 94 */
+}
+
+/* ── Grid-mode card variant ─────────────────────────────────────────────────
+ * Portrait tile (1.5 : 2.7) with three fixed horizontal bands:
+ *   [ title band    ] 30% — distinct background strip, 3-line clamp
+ *   [ meta block    ] 55% — type badge + date + size + count, full-width
+ *   [ action button ] 15% — full-width, text centered H+V
+ * The file-type icon column is hidden in grid mode — its info moves into
+ * the meta row as a colored badge so every meta value lines up uniformly.
+ */
+.idl-grid .idl-download-card {
+	aspect-ratio: 1.5 / 2.7;
+	border: 1px solid #e5e5e5;
+	border-radius: 4px;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+}
+
+/* ── Multi-file download card (count > 1) ──
+ * A card with a __title header contains more than one file. We can't
+ * honor the 1.5:2.7 portrait lock because each file becomes its own row
+ * inside the card. Release the aspect-ratio, stack files compactly, and
+ * let the card grow to its content. */
+.idl-grid .idl-download-card:has(.idl-download-card__title) {
+	aspect-ratio: auto;
+}
+.idl-grid .idl-download-card__title {
+	font-size: 1em;
+	font-weight: 600;
+	line-height: 1.3;
+	margin: 0;
+	padding: .8em 1em;
+	background: #f6f7f9;
+	border-bottom: 1px solid #e5e5e5;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	word-break: break-word;
+}
+.idl-grid .idl-download-card__title a { color: inherit; text-decoration: none; }
+
+/* Inside a multi-file card: each row is compact — no per-file title band,
+ * smaller meta block, inline button at the bottom of the row. The
+ * per-download-card bands only apply to single-file cards. */
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item {
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .75em;
+	padding: .75em 1em;
+	border-bottom: 1px solid #f0f0f0;
+	flex: 0 0 auto;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item:last-child {
+	border-bottom: none;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item__info {
+	flex: 1 1 0;
+	padding: 0;
+	min-width: 0;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item__title {
+	flex: 0 0 auto;
+	background: none;
+	border: none;
+	padding: 0 0 .25em;
+	font-size: .9em;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item__meta {
+	flex: 0 0 auto;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: .4em .8em;
+	padding: 0;
+	font-size: .8em;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item__meta .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item__action {
+	flex: 0 0 100%;
+	min-height: auto;
+	margin: 0;
+}
+.idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item__action .idl-download-btn {
+	border-radius: 3px;
+	padding: .5em 1em;
+}
+
+.idl-grid .idl-file-item {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0;
+	padding: 0;
+	border: none;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+/* Hide the large colored file-type tile in grid mode. */
+.idl-grid .idl-file-item__icon { display: none; }
+
+/* The info wrapper holds the title band + meta block. */
+.idl-grid .idl-file-item__info {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+
+/* ── Title band ── 30% of card height, visually distinct strip. */
+.idl-grid .idl-file-item__title {
+	flex: 0 0 30%;
+	width: 100%;
+	padding: .8em 1em;
+	margin: 0;
+	background: #f6f7f9;
+	border-bottom: 1px solid #e5e5e5;
+	font-size: 1em;
+	font-weight: 600;
+	line-height: 1.3;
+	box-sizing: border-box;
+	overflow: hidden;
+
+	/* Override the list-mode single-line truncation. */
+	white-space: normal;
+	text-overflow: clip;
+	word-break: break-word;
+
+	/* 3-line clamp on the block itself — works whether the content is a
+	 * bare text node or an inline <a> / <span>. */
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
+.idl-grid .idl-file-item__title a { color: inherit; text-decoration: none; }
+
+/* ── Meta block ── Fills remaining vertical space, one value per line. */
+.idl-grid .idl-file-item__meta {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: .5em;
+	padding: 1em;
+	font-size: .95em;
+	color: #555;
+	margin: 0;
+}
+.idl-grid .idl-file-item__meta .idl-meta { font-size: inherit; }
+.idl-grid .idl-file-item__meta .dashicons {
+	/* Larger dashicons in grid mode — still glyph-font so still px. */
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+.idl-grid .idl-meta--lock { align-self: flex-end; }
+
+/* File-type badge — grid-only. In list mode the big colored icon tile on
+ * the left already conveys the file type, so we hide this duplicate badge
+ * everywhere except inside .idl-grid.
+ *
+ * The hide rule has to match the specificity of .idl-file-item__meta
+ * .idl-meta (2 classes) or it loses. The show rule + the type-color rules
+ * share the same base specificity so the cascade order decides — colors
+ * declared last, they win. */
+.idl-file-item__meta .idl-meta--type { display: none; }
+.idl-grid .idl-file-item__meta .idl-meta--type {
+	display: inline-block;
+	padding: .2em .6em;
+	font-size: .85em;
+	font-weight: 700;
+	letter-spacing: .05em;
+	border-radius: 3px;
+	color: #fff;
+	text-transform: uppercase;
+}
+.idl-grid .idl-meta--type.idl-type--pdf  { background: #c0392b; }
+.idl-grid .idl-meta--type.idl-type--doc  { background: #2980b9; }
+.idl-grid .idl-meta--type.idl-type--xls  { background: #27ae60; }
+.idl-grid .idl-meta--type.idl-type--ppt  { background: #e67e22; }
+.idl-grid .idl-meta--type.idl-type--zip  { background: #8e44ad; }
+.idl-grid .idl-meta--type.idl-type--img  { background: #16a085; }
+.idl-grid .idl-meta--type.idl-type--vid  { background: #2c3e50; }
+.idl-grid .idl-meta--type.idl-type--aud  { background: #d35400; }
+.idl-grid .idl-meta--type.idl-type--file { background: #7f8c8d; }
+
+/* ── Action band ── 15% of card height, full width, text centered. */
+.idl-grid .idl-file-item__action {
+	flex: 0 0 15%;
+	/* Tap-target minimum per WCAG 2.5.5 — must be px. */
+	min-height: 44px;
+	display: flex;
+	margin: 0;
+	padding: 0;
+}
+.idl-grid .idl-file-item__action .idl-download-btn {
+	flex: 1 1 auto;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	margin: 0;
+	border-radius: 0;
+	line-height: 1;
+	text-align: center;
+}
+
+/* ── Container queries ─────────────────────────────────────────────────────
+ * Narrow containers (sidebars, two-column layouts, mobile viewports) get
+ * a single-column grid and release the portrait aspect lock so cards size
+ * to their content.
+ */
+@container (max-width: 30rem) {
+	.idl-grid--cols-2,
+	.idl-grid--cols-3,
+	.idl-grid--cols-4 { grid-template-columns: 1fr; }
+
+	.idl-grid .idl-download-card   { aspect-ratio: auto; }
+	.idl-grid .idl-file-item__title  { flex: 0 0 auto; }
+	.idl-grid .idl-file-item__meta   { flex: 0 0 auto; padding: 1em; }
+	.idl-grid .idl-file-item__action { flex: 0 0 auto; min-height: 48px; }
+}
+
+/* List-mode file row: collapse action column onto its own row when
+ * the container is tight (e.g. dropped in a sidebar). */
+@container (max-width: 22rem) {
+	.idl-file-item { flex-wrap: wrap; }
+	.idl-file-item__action { width: 100%; }
+	.idl-download-btn { width: 100%; justify-content: center; }
+}
+
+/* List table: stack rows vertically in very narrow containers. */
+@container (max-width: 22rem) {
+	.idl-file-list thead { display: none; }
+	.idl-file-list td    { display: block; padding: .25em .5em; }
+}
+
+/* Missing file state — flagged by integrity check */
+.idl-file-item--missing { opacity: .55; }
+.idl-file-item--missing .idl-file-item__title,
+.idl-file-item--missing .idl-file-item__meta { text-decoration: line-through; }
+.idl-file-missing-label {
+	display: inline-block;
+	padding: 3px 10px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #8a6d00;
+	background: #fff8e1;
+	border: 1px solid #dba617;
+	border-radius: 3px;
+}

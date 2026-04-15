@@ -1,0 +1,26 @@
+{
+    "name": "isoft/i-downloads",
+    "description": "Hierarchical file download manager for WordPress",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.0",
+        "phpunit/phpunit": "^9.6",
+        "wp-phpunit/wp-phpunit": "^6.8",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "yoast/phpunit-polyfills": "^2.0"
+    },
+    "scripts": {
+        "lint": "phpcs --standard=WordPress i-downloads.php includes/ templates/ public/ admin/",
+        "lint-fix": "phpcbf --standard=WordPress i-downloads.php includes/ templates/ public/ admin/",
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

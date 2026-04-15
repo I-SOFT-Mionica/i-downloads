@@ -1,0 +1,22 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "i-downloads/download-button",
+	"version": "0.1.0",
+	"title": "Download Entry [iD]",
+	"category": "i-downloads",
+	"icon": "download",
+	"description": "Embed the full download card for a selected download entry.",
+	"textdomain": "i-downloads",
+	"supports": {
+		"html": false,
+		"color": true,
+		"typography": true,
+		"spacing": true
+	},
+	"attributes": {
+		"downloadId": { "type": "number", "default": 0 }
+	},
+	"editorScript": "file:../build/download-button.js",
+	"render": "file:./render.php"
+}

@@ -1,0 +1,23 @@
+# Dev dependencies — never shipped with the plugin
+/vendor/
+/node_modules/
+
+# Build / distribution artifacts
+/dist/
+/blocks/build/
+
+# PHPUnit cache
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# Local test config (copy wp-tests-config-sample.php and edit)
+/tests/wp-tests-config.php
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# composer.lock is committed — do not ignore it

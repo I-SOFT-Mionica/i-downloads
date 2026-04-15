@@ -1,0 +1,15 @@
+# Copyright (C) 2026 I-SOFT Mionica
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: i-Downloads 0.4.6\n"
+"Report-Msgid-Bugs-To: https://isoft.rs\n"
+"POT-Creation-Date: 2026-04-14T00:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: wp i18n make-pot\n"
+"X-Domain: i-downloads\n"

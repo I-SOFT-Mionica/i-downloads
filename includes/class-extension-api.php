@@ -1,0 +1,61 @@
+<?php
+defined( 'ABSPATH' ) || exit;
+
+class IDL_Extension_Api {
+
+	/** @var array<string,array> Registered extensions keyed by slug. */
+	private static array $extensions = [];
+
+	public function register_hooks(): void {
+		// Fire after init (priority 20) so extensions' plugins_loaded callbacks have run.
+		add_action( 'init', [ $this, 'fire_init' ], 20 );
+		// Display queued admin notices from extensions
+		add_action( 'admin_notices', [ $this, 'render_admin_notices' ] );
+	}
+
+	public function fire_init(): void {
+		do_action( 'idl_extensions_init' );
+	}
+
+	public function render_admin_notices(): void {
+		if ( ! current_user_can( 'idl_manage_settings' ) ) {
+			return;
+		}
+		$notices = get_option( 'idl_admin_notices', [] );
+		if ( ! $notices ) {
+			return;
+		}
+		foreach ( $notices as $n ) {
+			printf(
+				'<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+				esc_attr( $n['type'] ),
+				esc_html( $n['message'] )
+			);
+		}
+		delete_option( 'idl_admin_notices' );
+	}
+
+	/**
+	 * Register an extension. Called by Sentinel/Orbit inside 'idl_extensions_init'.
+	 *
+	 * @param array{slug:string,name:string,version:string} $args
+	 */
+	public static function register( array $args ): bool {
+		foreach ( [ 'slug', 'name', 'version' ] as $key ) {
+			if ( empty( $args[ $key ] ) ) {
+				return false;
+			}
+		}
+		self::$extensions[ $args['slug'] ] = $args;
+		return true;
+	}
+
+	/** @return array<string,array> */
+	public static function get_all(): array {
+		return self::$extensions;
+	}
+
+	public static function get( string $slug ): ?array {
+		return self::$extensions[ $slug ] ?? null;
+	}
+}

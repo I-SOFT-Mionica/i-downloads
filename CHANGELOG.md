@@ -2,6 +2,24 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.4.7] — 2026-04-15
+
+### Added
+- **File integrity system.** New `IDL_File_Integrity` class with serve-time and scheduled detection of local files missing from their expected path. Cron hook `idl_integrity_check` runs daily at a configurable time (default 02:30, offset from the 01:00 HOT job). Per-run summary stored in `idl_integrity_last_run` option and surfaced as an admin notice.
+- **Inode-based rename recovery.** `IDL_File_Manager::add_local_file()` captures `fileinode()` at upload time. When a file is renamed in place, the scan finds it via stat-loop over the category folder (not a brute-force hash scan), verifies with SHA-256 to guard against inode recycling, and auto-relinks. Gated behind `idl_integrity_use_inode` option (default on, **disable on Windows/NTFS hosting** — non-POSIX filesystems don't expose stable inodes).
+- **Broken Links admin screen** at Downloads → Broken Links. `WP_List_Table` subclass with per-row recovery dialog offering cross-category hunt, Move back, Reassign download, Split into new draft, Reupload, Detach. Recovery dialog does one-shot hash verify before committing any move/reassign.
+- **Friendly end-user page** (`templates/file-unavailable.php`) replaces the raw `wp_die()` 404 at serve time. Renders with `status_header(503)`, headline "temporarily unavailable", and a "Contact site administrator" mailto button with pre-filled subject and body.
+- **Maintenance settings tab** — enable toggle, daily time picker, auto-relink toggle, inode toggle with prominent Windows warning, Run Now button, last-run readout.
+- **Auto-republish** on recovery, gated by `_idl_auto_unpublished_at` postmeta so manually-drafted posts are not flipped back to publish by the integrity system.
+- **Partial-missing rendering** — in `public/views/download-card.php`, missing files render with `idl-file-item--missing` class (opacity .55, strike-through, no download button) while healthy siblings remain clickable.
+- **10 new phpunit tests** under `tests/IntegrityTest.php` covering missing-flag defaults, `handle_missing()` marking + idempotency + conditional unpublish, `try_relink_by_inode()` on renamed files, scan healing previously-missing rows, cron rescheduling on option change, auto-republish flag gating.
+
+### Changed
+- `IDL_Download_Handler::serve_local_file()` — when the local file is unreadable, delegates to `IDL_File_Integrity::handle_missing()` + `render_unavailable_page()` instead of `wp_die()`.
+- Schema migration adds `is_missing TINYINT(1)`, `missing_since DATETIME`, and `inode BIGINT UNSIGNED` columns to `wp_idl_files`, plus `idx_file_hash` and `idx_is_missing` indexes. `dbDelta()` handles the upgrade idempotently.
+- Settings page — new "Maintenance" tab registered alongside existing tabs.
+- Broken Links submenu label shows a red badge with the current missing count.
+
 ## [0.4.6] — 2026-04-14
 
 ### Changed

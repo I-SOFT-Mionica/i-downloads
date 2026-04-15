@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.4.6
+Stable tag: 0.4.7
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,14 @@ Yes. The plugin detects FSE themes and injects the download card via `the_conten
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.4.7 =
+* **File integrity & broken-link recovery.** New scheduled check detects files missing from disk (configurable daily time). Serve-time detection replaces the raw 404 with a friendly "temporarily unavailable" page and a Contact admin button.
+* **Inode-based rename recovery** (Linux/POSIX). When a file is renamed in place the scan finds it via stored inode + hash verify and auto-relinks. Toggle in Maintenance settings — disable on Windows hosting.
+* **Broken Links admin screen** (Downloads → Broken Links) with per-row recovery: Move back, Reassign download to new category, Split into new draft, Reupload, Detach. Cross-category hunt finds files moved anywhere under the downloads folder.
+* Partial-missing downloads stay published with missing files rendered strike-through; fully-missing downloads auto-unpublish and auto-republish on recovery.
+* New Maintenance settings tab with enable toggle, daily time picker, auto-relink + inode options, and Run Now button.
+* 10 new phpunit tests covering missing-flag detection, idempotent notices, inode relink, auto-republish guard.
 
 = 0.4.6 =
 * Full WordPress Coding Standards (WPCS 3.0) pass: 0 errors, 18 intentional warnings (all with rationale suppressions).

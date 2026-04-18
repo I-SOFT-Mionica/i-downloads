@@ -14,6 +14,7 @@ class IDL_Demo_Content {
 	}
 
 	public static function has_demo_content(): bool {
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Admin-only one-shot check; LIMIT 1 keeps it fast.
 		$query = new WP_Query( [
 			'post_type'      => 'idl',
 			'post_status'    => 'any',
@@ -492,6 +493,7 @@ class IDL_Demo_Content {
 	// ─────────────────────────────────────────────────────────────────────────
 
 	private function remove_demo_posts(): void {
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Admin-only one-shot removal; bounded by demo content count (~6 posts).
 		$posts = get_posts( [
 			'post_type'      => 'idl',
 			'post_status'    => 'any',
@@ -518,6 +520,7 @@ class IDL_Demo_Content {
 	}
 
 	private function remove_demo_terms(): void {
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Admin-only one-shot cleanup; no persistent query, no performance concern.
 		$terms = get_terms( [
 			'taxonomy'   => 'idl_category',
 			'hide_empty' => false,
@@ -525,6 +528,7 @@ class IDL_Demo_Content {
 			'meta_value' => '1',
 			'fields'     => 'ids',
 		] );
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 
 		if ( is_wp_error( $terms ) ) {
 			return;

@@ -148,6 +148,7 @@ class IDL_Access_Control {
 		$alias      = 'idl_ar';
 
 		// LEFT JOIN so rows without the meta key are included (treated as default).
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $alias is a hardcoded literal 'idl_ar', not user input; used as a table alias to avoid conflicts with other plugins.
 		$clauses['join'] .= $wpdb->prepare(
 			" LEFT JOIN {$wpdb->postmeta} AS {$alias} ON ({$wpdb->posts}.ID = {$alias}.post_id AND {$alias}.meta_key = %s)",
 			'_idl_access_role'

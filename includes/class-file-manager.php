@@ -39,6 +39,7 @@ class IDL_File_Manager {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM %i WHERE download_id = %d ORDER BY sort_order ASC, id ASC",
@@ -62,6 +63,7 @@ class IDL_File_Manager {
 		}
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM %i WHERE id = %d",
@@ -258,6 +260,7 @@ class IDL_File_Manager {
 	 */
 	public function file_exists_by_hash( string $hash ): bool {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Dedup check on custom table; one-shot query during upload, not worth caching.
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT id FROM %i WHERE file_hash = %s LIMIT 1",

@@ -66,6 +66,7 @@ class IDL_License_Manager {
 			return $cached;
 		}
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$rows = $wpdb->get_results(
 			$wpdb->prepare( "SELECT * FROM %i ORDER BY sort_order ASC, id ASC", $this->table )
 		) ?: [];
@@ -80,6 +81,7 @@ class IDL_License_Manager {
 			return $cached ?: null;
 		}
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM %i WHERE id = %d",

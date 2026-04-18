@@ -249,13 +249,14 @@ class IDL_Category_Folders {
 	 * processes them. Sends a JSON error that the list table JS will display.
 	 */
 	public function ajax_guard_delete(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WP core verifies the nonce in its own handler; we only read taxonomy + tag_ID to decide whether to block.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- WP core verifies the nonce in its own delete-tag handler; we only read taxonomy + tag_ID to decide whether to block.
 		$taxonomy = sanitize_key( wp_unslash( $_POST['taxonomy'] ?? '' ) );
 		if ( 'idl_category' !== $taxonomy ) {
 			return;
 		}
 
 		$term_id = absint( $_POST['tag_ID'] ?? 0 );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( ! $term_id ) {
 			return;
 		}
@@ -310,7 +311,7 @@ class IDL_Category_Folders {
 							'i-downloads'
 						)
 					),
-					$name,
+					esc_html( $name ),
 					(int) $count
 				),
 				esc_html__( 'Category Not Empty', 'i-downloads' ),

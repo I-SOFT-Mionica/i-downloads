@@ -145,12 +145,11 @@ class IDL_Access_Control {
 		global $wpdb;
 
 		$accessible = $this->current_accessible;
-		$alias      = 'idl_ar';
 
-		// LEFT JOIN so rows without the meta key are included (treated as default).
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $alias is a hardcoded literal 'idl_ar', not user input; used as a table alias to avoid conflicts with other plugins.
 		$clauses['join'] .= $wpdb->prepare(
-			" LEFT JOIN {$wpdb->postmeta} AS {$alias} ON ({$wpdb->posts}.ID = {$alias}.post_id AND {$alias}.meta_key = %s)",
+			" LEFT JOIN %i AS idl_ar ON (%i.ID = idl_ar.post_id AND idl_ar.meta_key = %s)",
+			$wpdb->postmeta,
+			$wpdb->posts,
 			'_idl_access_role'
 		);
 
@@ -163,10 +162,10 @@ class IDL_Access_Control {
 		$default_role       = get_option( 'idl_default_access_role', 'public' );
 		$default_accessible = in_array( $default_role, $accessible, true );
 		$null_branch        = $default_accessible
-			? " OR {$alias}.meta_value IS NULL OR {$alias}.meta_value = ''"
+			? ' OR idl_ar.meta_value IS NULL OR idl_ar.meta_value = \'\''
 			: '';
 
-		$clauses['where'] .= " AND ({$alias}.meta_value IN ({$in_clause}){$null_branch})";
+		$clauses['where'] .= " AND (idl_ar.meta_value IN ({$in_clause}){$null_branch})";
 
 		return $clauses;
 	}

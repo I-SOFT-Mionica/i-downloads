@@ -80,11 +80,15 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
 		<exclude-pattern>*/views/*</exclude-pattern>
 		<exclude-pattern>*/templates/*</exclude-pattern>
+		<exclude-pattern>*/blocks/*/render.php</exclude-pattern>
+		<exclude-pattern>uninstall.php</exclude-pattern>
 	</rule>
 
-	<!-- GlobalVariablesOverride: same rationale; $post, $wp_query etc. in template scope are not overrides. -->
+	<!-- GlobalVariablesOverride: same rationale; $post, $wp_query etc. in template/block scope are not overrides. -->
 	<rule ref="WordPress.WP.GlobalVariablesOverride.Prohibited">
 		<exclude-pattern>*/views/*</exclude-pattern>
 		<exclude-pattern>*/templates/*</exclude-pattern>
+		<exclude-pattern>*/blocks/*/render.php</exclude-pattern>
+		<exclude-pattern>uninstall.php</exclude-pattern>
 	</rule>
 </ruleset>

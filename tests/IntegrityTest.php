@@ -18,20 +18,20 @@ class IntegrityTest extends WP_UnitTestCase {
 		$this->integrity = new IDL_File_Integrity();
 
 		// Create category + its folder.
-		$term           = wp_insert_term( 'Integrity Cat', 'idl_category', [ 'slug' => 'integrity-cat' ] );
+		$term           = wp_insert_term( 'Integrity Cat', 'idl_category', array( 'slug' => 'integrity-cat' ) );
 		$this->term_id  = (int) $term['term_id'];
 		$this->category_dir = idl_category_fs_path( $this->term_id );
 		if ( ! is_dir( $this->category_dir ) ) {
 			wp_mkdir_p( $this->category_dir );
 		}
 
-		$this->download_id = (int) idl_create_draft_download( [ 'title' => 'Integrity Host' ] );
-		wp_set_object_terms( $this->download_id, [ $this->term_id ], 'idl_category' );
+		$this->download_id = (int) idl_create_draft_download( array( 'title' => 'Integrity Host' ) );
+		wp_set_object_terms( $this->download_id, array( $this->term_id ), 'idl_category' );
 		wp_update_post(
-			[
+			array(
 				'ID'          => $this->download_id,
 				'post_status' => 'publish',
-			]
+			)
 		);
 
 		// Ensure inode option is on for these tests — turned off individually where needed.
@@ -68,7 +68,7 @@ class IntegrityTest extends WP_UnitTestCase {
 
 		$wpdb->insert(
 			$wpdb->prefix . 'idl_files',
-			[
+			array(
 				'download_id' => $this->download_id,
 				'file_type'   => 'local',
 				'file_name'   => $name,
@@ -78,8 +78,8 @@ class IntegrityTest extends WP_UnitTestCase {
 				'inode'       => $inode ?: null,
 				'title'       => $name,
 				'is_missing'  => 0,
-			],
-			[ '%d', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%d' ]
+			),
+			array( '%d', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%d' )
 		);
 		return (int) $wpdb->insert_id;
 	}
@@ -119,12 +119,12 @@ class IntegrityTest extends WP_UnitTestCase {
 		unlink( $this->category_dir . '/c.txt' );
 
 		IDL_File_Integrity::handle_missing( $row, $this->download_id );
-		$first_notices = count( (array) get_option( 'idl_admin_notices', [] ) );
+		$first_notices = count( (array) get_option( 'idl_admin_notices', array() ) );
 
 		// Second call must not re-queue (pass the post-update row, which now has is_missing=1).
 		$row2 = $this->get_row( $id );
 		IDL_File_Integrity::handle_missing( $row2, $this->download_id );
-		$second_notices = count( (array) get_option( 'idl_admin_notices', [] ) );
+		$second_notices = count( (array) get_option( 'idl_admin_notices', array() ) );
 
 		$this->assertSame( $first_notices, $second_notices );
 	}
@@ -172,7 +172,7 @@ class IntegrityTest extends WP_UnitTestCase {
 	public function test_try_relink_returns_false_when_inode_absent(): void {
 		$id  = $this->make_local_file( 'g.txt', 'golf' );
 		global $wpdb;
-		$wpdb->update( $wpdb->prefix . 'idl_files', [ 'inode' => null ], [ 'id' => $id ], [ '%d' ], [ '%d' ] );
+		$wpdb->update( $wpdb->prefix . 'idl_files', array( 'inode' => null ), array( 'id' => $id ), array( '%d' ), array( '%d' ) );
 		unlink( $this->category_dir . '/g.txt' );
 
 		$row = $this->get_row( $id );
@@ -185,10 +185,13 @@ class IntegrityTest extends WP_UnitTestCase {
 		// Pretend the row was flagged missing previously.
 		$wpdb->update(
 			$wpdb->prefix . 'idl_files',
-			[ 'is_missing' => 1, 'missing_since' => current_time( 'mysql' ) ],
-			[ 'id' => $id ],
-			[ '%d', '%s' ],
-			[ '%d' ]
+			array(
+				'is_missing'    => 1,
+				'missing_since' => current_time( 'mysql' ),
+			),
+			array( 'id' => $id ),
+			array( '%d', '%s' ),
+			array( '%d' )
 		);
 		// File is present at its expected path, so the scan should heal it.
 		$summary = $this->integrity->run_scheduled_check();
@@ -224,16 +227,19 @@ class IntegrityTest extends WP_UnitTestCase {
 		$this->assertEmpty( get_post_meta( $this->download_id, '_idl_auto_unpublished_at', true ) );
 
 		// Separately: a manually drafted post must NOT be auto-republished.
-		$manual = (int) idl_create_draft_download( [ 'title' => 'Manual Draft' ] );
-		wp_set_object_terms( $manual, [ $this->term_id ], 'idl_category' );
+		$manual = (int) idl_create_draft_download( array( 'title' => 'Manual Draft' ) );
+		wp_set_object_terms( $manual, array( $this->term_id ), 'idl_category' );
 		$id2 = $this->make_local_file( 'j.txt', 'juliet' );
 		global $wpdb;
 		$wpdb->update(
 			$wpdb->prefix . 'idl_files',
-			[ 'download_id' => $manual, 'is_missing' => 1 ],
-			[ 'id' => $id2 ],
-			[ '%d', '%d' ],
-			[ '%d' ]
+			array(
+				'download_id' => $manual,
+				'is_missing'  => 1,
+			),
+			array( 'id' => $id2 ),
+			array( '%d', '%d' ),
+			array( '%d' )
 		);
 		// No _idl_auto_unpublished_at meta — run scan, should heal but not publish.
 		$this->integrity->run_scheduled_check();

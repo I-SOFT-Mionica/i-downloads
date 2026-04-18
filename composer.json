@@ -14,8 +14,8 @@
         "yoast/phpunit-polyfills": "^2.0"
     },
     "scripts": {
-        "lint": "phpcs --standard=WordPress i-downloads.php includes/ templates/ public/ admin/",
-        "lint-fix": "phpcbf --standard=WordPress i-downloads.php includes/ templates/ public/ admin/",
+        "lint": "phpcs --standard=phpcs.xml.dist",
+        "lint-fix": "phpcbf --standard=phpcs.xml.dist",
         "test": "phpunit"
     },
     "config": {

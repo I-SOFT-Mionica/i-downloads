@@ -20,7 +20,7 @@ class LicenseManagerCacheTest extends WP_UnitTestCase {
 		global $wpdb;
 		$wpdb->insert(
 			$wpdb->prefix . 'idl_licenses',
-			[
+			array(
 				'title'       => $title,
 				'slug'        => sanitize_title( $title ),
 				'description' => '',
@@ -28,8 +28,8 @@ class LicenseManagerCacheTest extends WP_UnitTestCase {
 				'url'         => '',
 				'is_default'  => 0,
 				'sort_order'  => 0,
-			],
-			[ '%s', '%s', '%s', '%s', '%s', '%d', '%d' ]
+			),
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%d' )
 		);
 		return (int) $wpdb->insert_id;
 	}

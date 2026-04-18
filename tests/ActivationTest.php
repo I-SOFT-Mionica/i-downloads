@@ -8,7 +8,7 @@ class ActivationTest extends WP_UnitTestCase {
 	public function test_custom_tables_exist(): void {
 		global $wpdb;
 
-		foreach ( [ 'idl_files', 'idl_download_log', 'idl_download_daily', 'idl_licenses' ] as $suffix ) {
+		foreach ( array( 'idl_files', 'idl_download_log', 'idl_download_daily', 'idl_licenses' ) as $suffix ) {
 			$table = $wpdb->prefix . $suffix;
 			$found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 			$this->assertSame( $table, $found, "Table {$table} should exist after activation." );

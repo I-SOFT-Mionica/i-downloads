@@ -3,10 +3,12 @@
 	<description>PHPCS ruleset for i-Downloads WordPress plugin.</description>
 
 	<file>i-downloads.php</file>
+	<file>uninstall.php</file>
 	<file>includes</file>
 	<file>admin</file>
 	<file>public</file>
 	<file>templates</file>
+	<file>blocks</file>
 
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
@@ -38,7 +40,7 @@
 		<exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
 		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
 
-<!-- Custom capabilities — the plugin registers its own caps via IDL_Activator. -->
+		<!-- Custom capabilities — the plugin registers its own caps via IDL_Activator. -->
 		<exclude name="WordPress.WP.Capabilities.Unknown"/>
 
 		<!-- Direct DB queries + caching: this is a download/log plugin; data freshness matters. Individual queries still use prepare(). -->

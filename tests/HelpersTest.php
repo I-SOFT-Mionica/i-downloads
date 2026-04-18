@@ -6,12 +6,12 @@
 class HelpersTest extends WP_UnitTestCase {
 
 	public function test_create_draft_download_requires_title(): void {
-		$this->assertFalse( idl_create_draft_download( [] ) );
-		$this->assertFalse( idl_create_draft_download( [ 'title' => '' ] ) );
+		$this->assertFalse( idl_create_draft_download( array() ) );
+		$this->assertFalse( idl_create_draft_download( array( 'title' => '' ) ) );
 	}
 
 	public function test_create_draft_download_sets_type_and_status(): void {
-		$id = idl_create_draft_download( [ 'title' => 'Sample document' ] );
+		$id = idl_create_draft_download( array( 'title' => 'Sample document' ) );
 		$this->assertIsInt( $id );
 		$this->assertGreaterThan( 0, $id );
 
@@ -27,16 +27,16 @@ class HelpersTest extends WP_UnitTestCase {
 		$this->assertIsArray( $term );
 
 		$id = idl_create_draft_download(
-			[
+			array(
 				'title'       => 'Q1 Report',
 				'category_id' => $term['term_id'],
 				'access_role' => 'subscriber',
 				'license_id'  => 7,
-			]
+			)
 		);
 
 		$this->assertIsInt( $id );
-		$terms = wp_get_object_terms( $id, 'idl_category', [ 'fields' => 'ids' ] );
+		$terms = wp_get_object_terms( $id, 'idl_category', array( 'fields' => 'ids' ) );
 		$this->assertContains( (int) $term['term_id'], array_map( 'intval', $terms ) );
 		$this->assertSame( 'subscriber', get_post_meta( $id, '_idl_access_role', true ) );
 		$this->assertSame( '7', (string) get_post_meta( $id, '_idl_license_id', true ) );
@@ -71,14 +71,14 @@ class HelpersTest extends WP_UnitTestCase {
 	}
 
 	public function test_category_folder_path_walks_ancestors(): void {
-		$parent = wp_insert_term( 'Skupstina', 'idl_category', [ 'slug' => 'skupstina' ] );
+		$parent = wp_insert_term( 'Skupstina', 'idl_category', array( 'slug' => 'skupstina' ) );
 		$child  = wp_insert_term(
 			'Saziv',
 			'idl_category',
-			[
+			array(
 				'slug'   => 'saziv-2025',
 				'parent' => $parent['term_id'],
-			]
+			)
 		);
 
 		$this->assertSame( 'skupstina/saziv-2025', idl_category_folder_path( $child['term_id'] ) );

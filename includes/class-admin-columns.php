@@ -59,16 +59,7 @@ class IDL_Admin_Columns {
 				break;
 
 			case 'idl_files_count':
-				global $wpdb;
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list column COUNT(*) per row on custom idl_files table; rare admin load, caching a single integer is not worth the bust complexity.
-				echo esc_html(
-					(int) $wpdb->get_var(
-						$wpdb->prepare(
-							"SELECT COUNT(*) FROM {$wpdb->prefix}idl_files WHERE download_id = %d",
-							$post_id
-						)
-					)
-				);
+				echo esc_html( count( ( new IDL_File_Manager() )->get_files( $post_id ) ) );
 				break;
 
 			case 'idl_download_count':

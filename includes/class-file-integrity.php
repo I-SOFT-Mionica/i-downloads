@@ -103,6 +103,7 @@ class IDL_File_Integrity {
 				[ '%d' ]
 			);
 			IDL_File_Manager::bust_cache_for( $download_id, (int) $file->id );
+			delete_transient( 'idl_missing_count' );
 		}
 
 		// Count remaining non-missing local files on this download.
@@ -243,6 +244,7 @@ class IDL_File_Integrity {
 			);
 		}
 
+		delete_transient( 'idl_missing_count' );
 		do_action( 'idl_integrity_check_complete', $summary );
 
 		return $summary;
@@ -366,6 +368,7 @@ class IDL_File_Integrity {
 
 		$download_id = (int) $file->download_id;
 		IDL_File_Manager::bust_cache_for( $download_id, (int) $file->id );
+		delete_transient( 'idl_missing_count' );
 		$this->maybe_republish( $download_id );
 	}
 
@@ -487,8 +490,14 @@ class IDL_File_Integrity {
 	 * Count of rows currently flagged as missing. Used for the menu badge.
 	 */
 	public static function missing_count(): int {
+		$cached = get_transient( 'idl_missing_count' );
+		if ( false !== $cached ) {
+			return (int) $cached;
+		}
 		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Badge counter on custom table; freshness required for admin menu.
-		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_files WHERE is_missing = 1" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Badge counter on custom table; cached as idl_missing_count transient.
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_files WHERE is_missing = 1" );
+		set_transient( 'idl_missing_count', $count, 5 * MINUTE_IN_SECONDS );
+		return $count;
 	}
 }

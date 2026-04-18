@@ -123,6 +123,10 @@ $btn_text   = $settings['default_button_text'] ?: __( 'Download', 'i-downloads' 
 					class="wp-element-button idl-download-btn idl-download-btn--login">
 					<?php esc_html_e( 'Login', 'i-downloads' ); ?>
 				</a>
+			<?php else : ?>
+				<span class="idl-download-btn idl-download-btn--restricted">
+					<?php esc_html_e( 'Restricted', 'i-downloads' ); ?>
+				</span>
 			<?php endif; ?>
 		</div>
 

@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.4.8
+Stable tag: 0.5.2
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,21 @@ Yes. The plugin detects FSE themes and injects the download card via `the_conten
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.5.1 =
+* **Fixed: Default Access Role** now applies to new downloads. Previously all new downloads defaulted to "Public" regardless of the setting.
+* **Fixed: Download Counting** toggle now works. Previously downloads were counted unconditionally even when the setting was disabled.
+* **Fixed: Items Per Page** setting now used as the default for `[idl_list]` shortcode. Previously hardcoded to 10.
+* **Fixed: Custom CSS** is now enqueued on the frontend via `wp_add_inline_style()`. Previously the CSS was saved but never applied.
+
+= 0.5.0 =
+* **Rate limiting enforced.** The "Rate Limit (per IP/hour)" setting in Security now actually works — uses per-IP transients with 1-hour TTL. Returns HTTP 429 when exceeded. Fires `idl_rate_limit_exceeded` action for custom logging.
+* **Hotlink protection enforced.** The "Block downloads from external referers" checkbox now checks HTTP_REFERER against `home_url()` and blocks mismatches with HTTP 403.
+* Registered `idl_block_user_agents` and `idl_enable_zip_bundle` settings for future versions (user-agent blocklist; one-click ZIP bundle for multi-file downloads).
+
+= 0.4.9 =
+* **`%i` identifier placeholder** across all custom-table queries. Table names and ORDER BY columns now use WP 6.2+ `%i` in `$wpdb->prepare()` instead of string interpolation — eliminates every `InterpolatedNotPrepared` and `UnescapedDBParameter` warning without suppression.
+* Admin columns file count now routes through the cached `IDL_File_Manager::get_files()` — drops both `DirectQuery` and `NoCaching` warnings on the download list screen.
 
 = 0.4.8 =
 * **Object cache layer** for `IDL_File_Manager` and `IDL_License_Manager`. Hot-path reads (`get_files`, `get_file`, `get_all`, `get`) now cache under the `idl_files` / `idl_licenses` groups with `HOUR_IN_SECONDS` TTL. On a 60-item download listing this collapses N+1 file lookups to a single warm-up query plus cache hits. All write paths bust the affected keys; `IDL_File_Manager::bust_cache_for()` is exposed for external callers (broken-links AJAX, integrity scan, category-folder rename).

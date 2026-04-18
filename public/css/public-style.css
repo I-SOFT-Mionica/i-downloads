@@ -175,6 +175,14 @@
 	width: fit-content;
 	width: -moz-fit-content; /* Firefox < 94 */
 }
+.idl-download-btn--restricted {
+	opacity: 0.6;
+	cursor: default;
+	pointer-events: none;
+}
+.idl-download-btn--login {
+	opacity: 0.85;
+}
 
 /* ── Grid-mode card variant ─────────────────────────────────────────────────
  * Portrait tile (1.5 : 2.7) with three fixed horizontal bands:

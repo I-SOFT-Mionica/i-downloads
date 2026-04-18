@@ -61,7 +61,11 @@ function idl_create_draft_download( array $args ): int|false {
  * @return array<string,mixed>
  */
 function idl_get_settings(): array {
-	return [
+	static $cached = null;
+	if ( null !== $cached ) {
+		return $cached;
+	}
+	$cached = [
 		'default_access_role'      => get_option( 'idl_default_access_role', 'public' ),
 		'enable_counting'          => (bool) get_option( 'idl_enable_counting', true ),
 		'enable_logging'           => (bool) get_option( 'idl_enable_logging', true ),
@@ -83,11 +87,13 @@ function idl_get_settings(): array {
 		'date_format'              => get_option( 'idl_date_format', get_option( 'date_format' ) ),
 		'serve_method'             => get_option( 'idl_serve_method', 'auto' ),
 		'rate_limit_per_hour'      => (int) get_option( 'idl_rate_limit_per_hour', 0 ),
+		'hotlink_protection'       => (bool) get_option( 'idl_hotlink_protection', false ),
 		'archive_slug'             => get_option( 'idl_archive_slug', 'downloads' ),
 		'category_slug'            => get_option( 'idl_category_slug', 'download-category' ),
 		'tag_slug'                 => get_option( 'idl_tag_slug', 'download-tag' ),
 		'delete_data_on_uninstall' => (bool) get_option( 'idl_delete_data_on_uninstall', false ),
 	];
+	return $cached;
 }
 
 /**

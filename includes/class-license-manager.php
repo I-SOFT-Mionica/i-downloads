@@ -67,8 +67,7 @@ class IDL_License_Manager {
 		}
 		global $wpdb;
 		$rows = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
-			"SELECT * FROM {$this->table} ORDER BY sort_order ASC, id ASC"
+			$wpdb->prepare( "SELECT * FROM %i ORDER BY sort_order ASC, id ASC", $this->table )
 		) ?: [];
 		wp_cache_set( 'all_licenses', $rows, self::CACHE_GROUP, HOUR_IN_SECONDS );
 		return $rows;
@@ -83,8 +82,8 @@ class IDL_License_Manager {
 		global $wpdb;
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
-				"SELECT * FROM {$this->table} WHERE id = %d",
+				"SELECT * FROM %i WHERE id = %d",
+				$this->table,
 				$id
 			)
 		) ?: null;
@@ -122,10 +121,11 @@ class IDL_License_Manager {
 
 		// Only one default allowed
 		if ( $data['is_default'] && $id ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; full-group cache flush below.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; full-group cache flush below.
 			$wpdb->query(
 				$wpdb->prepare(
-					"UPDATE {$this->table} SET is_default = 0 WHERE id != %d",
+					"UPDATE %i SET is_default = 0 WHERE id != %d",
+					$this->table,
 					$id
 				)
 			);

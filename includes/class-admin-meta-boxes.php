@@ -7,6 +7,8 @@ class IDL_Admin_Meta_Boxes {
 		add_action( 'add_meta_boxes', [ $this, 'register' ] );
 		add_action( 'save_post_idl', [ $this, 'save' ], 10, 2 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_action( 'post_submitbox_misc_actions', [ $this, 'render_access_role_in_publish_box' ] );
+		add_filter( 'wp_insert_post_data', [ $this, 'strip_post_password' ], 10, 2 );
 		add_action( 'wp_ajax_idl_delete_file', [ $this, 'ajax_delete_file' ] );
 		add_action( 'wp_ajax_idl_save_file_order', [ $this, 'ajax_save_order' ] );
 		add_action( 'wp_ajax_idl_add_external', [ $this, 'ajax_add_external' ] );
@@ -69,6 +71,7 @@ class IDL_Admin_Meta_Boxes {
 			]
 		);
 		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', [], IDL_VERSION );
+		wp_add_inline_style( 'idl-admin', '#visibility-action, .misc-pub-visibility { display: none !important; }' );
 	}
 
 	public function register(): void {
@@ -76,8 +79,7 @@ class IDL_Admin_Meta_Boxes {
 		add_meta_box( 'idl-files', __( 'Files', 'i-downloads' ), [ $this, 'render_files' ], 'idl', 'normal', 'high' );
 		// Description replaces the removed post editor.
 		add_meta_box( 'idl-description', __( 'Description', 'i-downloads' ), [ $this, 'render_description' ], 'idl', 'normal', 'high' );
-		add_meta_box( 'idl-settings', __( 'Download Settings', 'i-downloads' ), [ $this, 'render_settings' ], 'idl', 'side', 'high' );
-		add_meta_box( 'idl-version-info', __( 'Version Info', 'i-downloads' ), [ $this, 'render_version_info' ], 'idl', 'normal', 'default' );
+		add_meta_box( 'idl-version-info', __( 'Version & License', 'i-downloads' ), [ $this, 'render_version_info' ], 'idl', 'normal', 'default' );
 		add_meta_box( 'idl-stats', __( 'Statistics', 'i-downloads' ), [ $this, 'render_stats' ], 'idl', 'side', 'default' );
 	}
 
@@ -108,13 +110,47 @@ class IDL_Admin_Meta_Boxes {
 		<?php
 	}
 
-	public function render_settings( WP_Post $post ): void {
-		$access_role   = get_post_meta( $post->ID, '_idl_access_role', true ) ?: 'public';
-		$require_agree = (bool) get_post_meta( $post->ID, '_idl_require_agree', true );
-		$agree_text    = (string) get_post_meta( $post->ID, '_idl_agree_text', true );
-		$featured      = (bool) get_post_meta( $post->ID, '_idl_featured', true );
-		$external_only = (bool) get_post_meta( $post->ID, '_idl_external_only', true );
-		require IDL_PLUGIN_DIR . 'admin/views/meta-box-settings.php';
+	/**
+	 * Render the Access Role dropdown inside the Publish meta box.
+	 */
+	public function render_access_role_in_publish_box( WP_Post $post ): void {
+		if ( 'idl' !== $post->post_type ) {
+			return;
+		}
+		$access_role = get_post_meta( $post->ID, '_idl_access_role', true )
+			?: get_option( 'idl_default_access_role', 'public' );
+		$roles = [
+			'public'        => __( 'Public (everyone)', 'i-downloads' ),
+			'subscriber'    => __( 'Subscriber+', 'i-downloads' ),
+			'contributor'   => __( 'Contributor+', 'i-downloads' ),
+			'author'        => __( 'Author+', 'i-downloads' ),
+			'editor'        => __( 'Editor+', 'i-downloads' ),
+			'administrator' => __( 'Administrator only', 'i-downloads' ),
+		];
+		?>
+		<div class="misc-pub-section misc-pub-idl-access">
+			<span class="dashicons dashicons-lock" style="color:#82878c;margin-right:2px;"></span>
+			<label for="idl-access-role"><strong><?php esc_html_e( 'Access:', 'i-downloads' ); ?></strong></label>
+			<select name="_idl_access_role" id="idl-access-role" style="margin-left:4px;">
+				<?php foreach ( $roles as $value => $label ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $access_role, $value ); ?>>
+						<?php echo esc_html( $label ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Strip post_password for idl posts — our RBAC replaces WP password protection.
+	 */
+	public function strip_post_password( array $data, array $postarr ): array {
+		unset( $postarr );
+		if ( 'idl' === ( $data['post_type'] ?? '' ) ) {
+			$data['post_password'] = '';
+		}
+		return $data;
 	}
 
 	public function render_version_info( WP_Post $post ): void {
@@ -124,6 +160,8 @@ class IDL_Admin_Meta_Boxes {
 		$author_name    = (string) get_post_meta( $post->ID, '_idl_author_name', true );
 		$author_url     = (string) get_post_meta( $post->ID, '_idl_author_url', true );
 		$date_published = (string) get_post_meta( $post->ID, '_idl_date_published', true );
+		$require_agree  = (bool) get_post_meta( $post->ID, '_idl_require_agree', true );
+		$agree_text     = (string) get_post_meta( $post->ID, '_idl_agree_text', true );
 		$licenses       = new IDL_License_Manager()->get_all();
 		require IDL_PLUGIN_DIR . 'admin/views/meta-box-version-info.php';
 	}
@@ -152,12 +190,17 @@ class IDL_Admin_Meta_Boxes {
 
 		$valid_roles = [ 'public', 'subscriber', 'contributor', 'author', 'editor', 'administrator' ];
 
-		$role = sanitize_text_field( wp_unslash( $_POST['_idl_access_role'] ?? 'public' ) );
-		update_post_meta( $post_id, '_idl_access_role', in_array( $role, $valid_roles, true ) ? $role : 'public' );
+		// Access role — rendered in the Publish box via post_submitbox_misc_actions.
+		$default_role = get_option( 'idl_default_access_role', 'public' );
+		$role         = sanitize_text_field( wp_unslash( $_POST['_idl_access_role'] ?? $default_role ) );
+		update_post_meta( $post_id, '_idl_access_role', in_array( $role, $valid_roles, true ) ? $role : $default_role );
+
+		// Agreement — rendered in Version & License box.
 		update_post_meta( $post_id, '_idl_require_agree', ! empty( $_POST['_idl_require_agree'] ) ? 1 : 0 );
 		update_post_meta( $post_id, '_idl_agree_text', wp_kses_post( wp_unslash( $_POST['_idl_agree_text'] ?? '' ) ) );
-		update_post_meta( $post_id, '_idl_featured', ! empty( $_POST['_idl_featured'] ) ? 1 : 0 );
-		update_post_meta( $post_id, '_idl_external_only', ! empty( $_POST['_idl_external_only'] ) ? 1 : 0 );
+
+		// TODO v1.0: Featured flag — pin to top of category listing when sort=featured.
+		// TODO v1.0: External Only — prefer external source when download has both local and remote files.
 
 		update_post_meta( $post_id, '_idl_version', sanitize_text_field( wp_unslash( $_POST['_idl_version'] ?? '' ) ) );
 		update_post_meta( $post_id, '_idl_changelog', wp_kses_post( wp_unslash( $_POST['_idl_changelog'] ?? '' ) ) );

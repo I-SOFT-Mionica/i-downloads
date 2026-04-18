@@ -142,12 +142,11 @@ class IDL_Log_Table extends WP_List_Table {
 
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		// Two-branch literal-prepare pattern: each branch passes a single string literal as
-		// the first arg of prepare(). $orderby is allowlisted at lines 137-140; $order is
-		// hardcoded to ASC|DESC at line 141, so the two remaining interpolations are safe.
+		// Each branch passes a single literal SQL to prepare(). $orderby is allowlisted at
+		// lines 137-140 and passed via %i. $order is hardcoded ASC|DESC at line 141.
 		$like = $search !== '' ? '%' . $wpdb->esc_like( $search ) . '%' : '';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- WP_List_Table on custom log table; pagination/filtering prevents query-cache benefit.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- WP_List_Table on custom log table; $order is hardcoded ASC|DESC at line 141, not an identifier so %i does not apply.
 		if ( $search !== '' && $filter_download > 0 ) {
 			$total       = (int) $wpdb->get_var(
 				$wpdb->prepare(
@@ -173,12 +172,13 @@ class IDL_Log_Table extends WP_List_Table {
 					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
 					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
 					    AND l.download_id = %d
-					  ORDER BY {$orderby} {$order}
+					  ORDER BY %i {$order}
 					  LIMIT %d OFFSET %d",
 					$like,
 					$like,
 					$like,
 					$filter_download,
+					$orderby,
 					$per_page,
 					$offset
 				)
@@ -205,11 +205,12 @@ class IDL_Log_Table extends WP_List_Table {
 					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
 					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
 					  WHERE ( p.post_title LIKE %s OR l.user_login LIKE %s OR l.ip_address LIKE %s )
-					  ORDER BY {$orderby} {$order}
+					  ORDER BY %i {$order}
 					  LIMIT %d OFFSET %d",
 					$like,
 					$like,
 					$like,
+					$orderby,
 					$per_page,
 					$offset
 				)
@@ -234,9 +235,10 @@ class IDL_Log_Table extends WP_List_Table {
 					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
 					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
 					  WHERE l.download_id = %d
-					  ORDER BY {$orderby} {$order}
+					  ORDER BY %i {$order}
 					  LIMIT %d OFFSET %d",
 					$filter_download,
+					$orderby,
 					$per_page,
 					$offset
 				)
@@ -256,14 +258,15 @@ class IDL_Log_Table extends WP_List_Table {
 					   FROM {$wpdb->prefix}idl_download_log l
 					   LEFT JOIN {$wpdb->posts} p ON p.ID = l.download_id
 					   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
-					  ORDER BY {$orderby} {$order}
+					  ORDER BY %i {$order}
 					  LIMIT %d OFFSET %d",
+					$orderby,
 					$per_page,
 					$offset
 				)
 			) ?? [];
 		}
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		$this->set_pagination_args(
 			[
@@ -303,7 +306,7 @@ class IDL_Log_Table extends WP_List_Table {
 
 		global $wpdb;
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Dynamic IN() placeholder count; $placeholders is pure %d tokens from array_fill. One-shot admin bulk action.
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->prefix}idl_download_log WHERE id IN ($placeholders)", ...$ids ) );
 	}
 }

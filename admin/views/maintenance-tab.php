@@ -134,4 +134,36 @@ $just_ran = isset( $_GET['idl_ran'] ); // phpcs:ignore WordPress.Security.NonceV
 		</table>
 	<?php endif; ?>
 
+	<hr>
+
+	<h2><?php esc_html_e( 'Demo Content', 'i-downloads' ); ?></h2>
+
+	<?php if ( ! IDL_Demo_Content::has_content() ) : ?>
+		<p class="description" style="max-width:780px;">
+			<?php esc_html_e( 'Install sample categories and downloads to explore the plugin. Creates a realistic category tree with PDF and DOCX files demonstrating nested categories, access roles, and multi-file downloads.', 'i-downloads' ); ?>
+		</p>
+		<p>
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=idl_install_demo' ), 'idl_install_demo' ) ); ?>"
+				class="button button-primary"
+				onclick="return confirm('<?php echo esc_js( __( 'Install demo categories and downloads?', 'i-downloads' ) ); ?>');">
+				<?php esc_html_e( 'Install Demo Content', 'i-downloads' ); ?>
+			</a>
+		</p>
+	<?php elseif ( IDL_Demo_Content::has_demo_content() ) : ?>
+		<p class="description" style="max-width:780px;">
+			<?php esc_html_e( 'Demo content is installed. You can remove it when you are ready to add your own documents.', 'i-downloads' ); ?>
+		</p>
+		<p>
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=idl_remove_demo' ), 'idl_remove_demo' ) ); ?>"
+				class="button"
+				onclick="return confirm('<?php echo esc_js( __( 'Remove all demo categories, downloads, and files? This cannot be undone.', 'i-downloads' ) ); ?>');">
+				<?php esc_html_e( 'Remove Demo Content', 'i-downloads' ); ?>
+			</a>
+		</p>
+	<?php else : ?>
+		<p class="description">
+			<?php esc_html_e( 'Your site has download content. Demo content can only be installed on a fresh setup with no existing downloads.', 'i-downloads' ); ?>
+		</p>
+	<?php endif; ?>
+
 </div>

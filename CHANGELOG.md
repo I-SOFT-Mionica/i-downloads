@@ -2,6 +2,53 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.5.2] — 2026-04-18
+
+### Added
+- **Query-level RBAC enforcement.** All frontend `idl` queries (shortcodes, archives, taxonomy pages, search) now filter by `_idl_access_role` via a centralized `pre_get_posts` + `posts_clauses` hook in `IDL_Access_Control`. Restricted downloads no longer leak titles, metadata, or file info to unauthorized users. Uses `LEFT JOIN` on postmeta so downloads without `_idl_access_role` meta inherit the global `idl_default_access_role` setting.
+- **"Restricted" label** shown to logged-in users who lack the required role — in download cards, `[idl_button]`, `[idl_download]`, and table layout. Previously showed a blank action column.
+- **Access check on `[idl_count]`** — returns empty string for restricted downloads to prevent information disclosure.
+- **`edit_post` capability check** on REST endpoint `GET /downloads/{id}/files` — admin-facing endpoint now properly gates on WP's mapped capabilities.
+- **Password-protection guard** in download handler — `post_password_required()` check blocks direct-URL bypass of password-protected posts.
+- **Access Role in Publish box** — replaces WordPress Visibility toggle (Public/Private/Password) with the plugin's own Access Role dropdown. WP Visibility section hidden via CSS for `idl` post type. `post_password` force-stripped on save.
+- **Agreement fields moved** from Download Settings to Version & License meta box, grouped with the License picker.
+
+### Removed
+- **Download Settings meta box** — emptied after Access Role moved to Publish box and Agreement moved to Version & License. View file `admin/views/meta-box-settings.php` deleted.
+
+### Changed
+- **`can_access_download()` fallback** now uses `get_option('idl_default_access_role', 'public')` instead of hardcoded `'public'`.
+- **Version Info meta box** renamed to "Version & License" to reflect added Agreement fields.
+
+### Disabled (TODO v1.0)
+- `_idl_featured` — will pin downloads to top of category when sort=featured.
+- `_idl_external_only` — will prefer external source when download has both local and remote files.
+- `_idl_cat_access_role` — will enforce category-level read access in `IDL_Access_Control`.
+
+## [0.5.1] — 2026-04-17
+
+### Fixed
+- **Default Access Role** (`idl_default_access_role`) now used as the fallback when rendering and saving the per-download access role meta box. Previously hardcoded to `'public'` in both the display default ([class-admin-meta-boxes.php:112](i-downloads/includes/class-admin-meta-boxes.php#L112)) and the save fallback ([class-admin-meta-boxes.php:155](i-downloads/includes/class-admin-meta-boxes.php#L155)).
+- **Download Counting** (`idl_enable_counting`) now gated in `class-download-handler.php`. `increment_count()` is only called when the setting is enabled. Previously the setting was read into `idl_get_settings()` but never checked before counting.
+- **Items Per Page** (`idl_items_per_page`) now used as the default `limit` in the `[idl_list]` shortcode. Previously the shortcode hardcoded a default of 10; the setting only affected search results.
+- **Custom CSS** (`idl_custom_css`) now enqueued on the frontend via `wp_add_inline_style( 'idl-public', ... )` in `IDL_Shortcodes::enqueue_assets()`. Previously the CSS was saved to the database but never applied to any page.
+
+## [0.5.0] — 2026-04-17
+
+### Added
+- **Rate limiting enforcement.** The "Rate Limit (per IP/hour)" setting in Settings → Security now works. Uses per-IP transients (`idl_rl_{hash}`) with `HOUR_IN_SECONDS` TTL. Returns HTTP 429 when exceeded. Fires `idl_rate_limit_exceeded` action with the IP and configured limit for custom logging or ban integration.
+- **Hotlink protection enforcement.** The "Block downloads from external referers" checkbox in Settings → Security now checks `HTTP_REFERER` against `home_url()` and blocks mismatches with HTTP 403. Empty referer (direct navigation, privacy extensions) is allowed through — only off-site referers are rejected.
+- Registered `idl_block_user_agents` setting placeholder for future user-agent blocklist enforcement.
+- Registered `idl_enable_zip_bundle` setting placeholder for planned one-click ZIP bundle of multi-file downloads.
+- `hotlink_protection` key added to `idl_get_settings()` return array.
+
+## [0.4.9] — 2026-04-16
+
+### Changed
+- **`%i` identifier placeholder** across all custom-table queries in `IDL_File_Manager`, `IDL_License_Manager`, `IDL_Download_Logger`, `IDL_Log_Table`, `IDL_Export`, and `IDL_Rest_Api`. Table names and `ORDER BY` columns now use the WP 6.2+ `%i` placeholder in `$wpdb->prepare()` instead of string interpolation — eliminates every `InterpolatedNotPrepared` and `UnescapedDBParameter` warning without any suppression comment.
+- **Admin columns file count** now routes through the cached `IDL_File_Manager::get_files()` instead of a raw `COUNT(*)` query — drops both `DirectQuery` and `NoCaching` warnings and benefits from the object-cache layer added in 0.4.8.
+- Added `phpcs:ignore` with rationale to `uninstall.php` wildcard option cleanup (no WP API for wildcard `delete_option()`).
+
 ## [0.4.8] — 2026-04-15
 
 ### Added

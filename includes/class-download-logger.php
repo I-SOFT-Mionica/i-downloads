@@ -87,10 +87,11 @@ class IDL_Download_Logger {
 			return 0;
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Retention cleanup on custom log table; never cached.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Retention cleanup on custom log table; never cached.
 		$deleted = (int) $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$this->table} WHERE downloaded_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				"DELETE FROM %i WHERE downloaded_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				$this->table,
 				$days
 			)
 		);

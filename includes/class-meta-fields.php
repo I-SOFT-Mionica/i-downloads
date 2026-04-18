@@ -19,6 +19,7 @@ class IDL_Meta_Fields {
 			'_idl_access_role'    => 'string',
 			'_idl_require_agree'  => 'boolean',
 			'_idl_agree_text'     => 'string',
+			'_idl_is_hot'         => 'boolean',
 			'_idl_featured'       => 'boolean',
 			'_idl_external_only'  => 'boolean',
 		];

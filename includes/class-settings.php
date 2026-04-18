@@ -142,7 +142,8 @@ class IDL_Settings {
 			'idl_serve_method'             => 'sanitize_text_field',
 			'idl_nginx_config_confirmed'   => 'absint',
 			'idl_rate_limit_per_hour'      => 'absint',
-			'idl_block_user_agents'        => 'sanitize_textarea_field',
+			'idl_block_user_agents'        => 'sanitize_textarea_field', // Planned: user-agent blocklist enforcement in download handler.
+			'idl_enable_zip_bundle'        => 'absint', // Planned: combine multi-file downloads into a single ZIP on the fly.
 			'idl_hotlink_protection'       => 'absint',
 			// Files
 			'idl_allowed_extensions'       => 'sanitize_textarea_field',

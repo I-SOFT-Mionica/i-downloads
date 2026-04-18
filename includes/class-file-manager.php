@@ -41,8 +41,8 @@ class IDL_File_Manager {
 		global $wpdb;
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
-				"SELECT * FROM {$this->table} WHERE download_id = %d ORDER BY sort_order ASC, id ASC",
+				"SELECT * FROM %i WHERE download_id = %d ORDER BY sort_order ASC, id ASC",
+				$this->table,
 				$download_id
 			)
 		) ?: [];
@@ -64,8 +64,8 @@ class IDL_File_Manager {
 		global $wpdb;
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
-				"SELECT * FROM {$this->table} WHERE id = %d",
+				"SELECT * FROM %i WHERE id = %d",
+				$this->table,
 				$file_id
 			)
 		) ?: null;
@@ -193,10 +193,11 @@ class IDL_File_Manager {
 	 */
 	private function get_file_uncached( int $file_id ): ?object {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Cache-bypass lookup used during cache invalidation; caching here would defeat the purpose.
 		return $wpdb->get_row(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Cache-bypass lookup used during cache invalidation; caching here would defeat the purpose.
-				"SELECT * FROM {$this->table} WHERE id = %d",
+				"SELECT * FROM %i WHERE id = %d",
+				$this->table,
 				$file_id
 			)
 		) ?: null;
@@ -231,18 +232,20 @@ class IDL_File_Manager {
 	public function increment_count( int $file_id, int $download_id ): void {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counter increment on custom table; cache invalidated below.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counter increment on custom table; cache invalidated below.
 		$wpdb->query(
 			$wpdb->prepare(
-				"UPDATE {$this->table} SET download_count = download_count + 1 WHERE id = %d",
+				"UPDATE %i SET download_count = download_count + 1 WHERE id = %d",
+				$this->table,
 				$file_id
 			)
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregate over custom table immediately after write; freshness required.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregate over custom table immediately after write; freshness required.
 		$total = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT SUM(download_count) FROM {$this->table} WHERE download_id = %d",
+				"SELECT SUM(download_count) FROM %i WHERE download_id = %d",
+				$this->table,
 				$download_id
 			)
 		);
@@ -257,8 +260,8 @@ class IDL_File_Manager {
 		global $wpdb;
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Class-property table name.
-				"SELECT id FROM {$this->table} WHERE file_hash = %s LIMIT 1",
+				"SELECT id FROM %i WHERE file_hash = %s LIMIT 1",
+				$this->table,
 				$hash
 			)
 		);

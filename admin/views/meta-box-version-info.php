@@ -24,6 +24,24 @@
 			</select>
 		</td>
 	</tr>
+	<!-- TODO v1.0: Rework agreement UX — conditional display, better relationship with license -->
+	<tr>
+		<th><?php esc_html_e( 'Require Agreement', 'i-downloads' ); ?></th>
+		<td>
+			<label>
+				<input type="checkbox" name="_idl_require_agree" value="1" <?php checked( $require_agree ); ?> />
+				<?php esc_html_e( 'Require user to agree before downloading', 'i-downloads' ); ?>
+			</label>
+			<p class="description"><?php esc_html_e( 'Uses the assigned license full text, or the custom text below.', 'i-downloads' ); ?></p>
+		</td>
+	</tr>
+	<tr>
+		<th><label for="idl-agree-text"><?php esc_html_e( 'Agreement Text', 'i-downloads' ); ?></label></th>
+		<td>
+			<textarea name="_idl_agree_text" id="idl-agree-text" class="widefat" rows="4"><?php echo esc_textarea( $agree_text ); ?></textarea>
+			<p class="description"><?php esc_html_e( 'Shown in the agreement modal if no license is assigned.', 'i-downloads' ); ?></p>
+		</td>
+	</tr>
 	<tr>
 		<th><label for="idl-author-name"><?php esc_html_e( 'Author Name', 'i-downloads' ); ?></label></th>
 		<td><input type="text" name="_idl_author_name" id="idl-author-name" value="<?php echo esc_attr( $author_name ); ?>" class="regular-text" /></td>

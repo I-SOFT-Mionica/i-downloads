@@ -38,6 +38,7 @@ class IDL_Category_Folders {
 		add_action( 'edit_term', [ $this, 'before_edit' ], 10, 3 );
 		add_action( 'edited_idl_category', [ $this, 'on_edited' ], PHP_INT_MAX, 2 );
 		add_action( 'pre_delete_term', [ $this, 'on_pre_delete' ], 10, 2 );
+		add_action( 'wp_ajax_delete-tag', [ $this, 'ajax_guard_delete' ], 0 );
 
 		// Move files on disk when a download's category assignment changes.
 		add_action( 'set_object_terms', [ $this, 'on_object_terms_set' ], 10, 6 );
@@ -244,6 +245,46 @@ class IDL_Category_Folders {
 	}
 
 	/**
+	 * AJAX guard: intercept delete-tag requests for idl_category before WP core
+	 * processes them. Sends a JSON error that the list table JS will display.
+	 */
+	public function ajax_guard_delete(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WP core verifies the nonce in its own handler; we only read taxonomy + tag_ID to decide whether to block.
+		$taxonomy = sanitize_key( wp_unslash( $_POST['taxonomy'] ?? '' ) );
+		if ( 'idl_category' !== $taxonomy ) {
+			return;
+		}
+
+		$term_id = absint( $_POST['tag_ID'] ?? 0 );
+		if ( ! $term_id ) {
+			return;
+		}
+
+		$count = $this->count_downloads_in_category( $term_id );
+		if ( $count < 1 ) {
+			return;
+		}
+
+		$term = get_term( $term_id, 'idl_category' );
+		$name = $term ? $term->name : "#{$term_id}";
+
+		$message = sprintf(
+			/* translators: 1: category name, 2: number of downloads */
+			_n(
+				'Cannot delete "%1$s": %2$d download is still in this category. Move or delete it first.',
+				'Cannot delete "%1$s": %2$d downloads are still in this category. Move or delete them first.',
+				$count,
+				'i-downloads'
+			),
+			$name,
+			$count
+		);
+
+		idl_notify_admin( $message, 'error' );
+		wp_die( '0' );
+	}
+
+	/**
 	 * Before a term is deleted: block if any downloads are still assigned to it
 	 * (would become orphaned), otherwise remove the folder if it is empty.
 	 */
@@ -252,32 +293,24 @@ class IDL_Category_Folders {
 			return;
 		}
 
-		// Count downloads still assigned to this category.
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Pre-delete guard on core taxonomy tables; freshness required to block orphaning.
-		$count = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*)
-				   FROM {$wpdb->term_relationships} tr
-				   JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-				  WHERE tt.term_id = %d
-				    AND tt.taxonomy = 'idl_category'",
-				$term_id
-			)
-		);
+		$count = $this->count_downloads_in_category( $term_id );
 
 		if ( $count > 0 ) {
+			$term = get_term( $term_id, 'idl_category' );
+			$name = $term ? $term->name : "#{$term_id}";
+
 			wp_die(
 				sprintf(
 					esc_html(
-						/* translators: %d: number of downloads in the category */
+						/* translators: 1: category name, 2: number of downloads */
 						_n(
-							'Cannot delete: %d download is still assigned to this category. Reassign or delete the download first.',
-							'Cannot delete: %d downloads are still assigned to this category. Reassign or delete them first.',
+							'Cannot delete "%1$s": %2$d download is still in this category. Move or delete it first.',
+							'Cannot delete "%1$s": %2$d downloads are still in this category. Move or delete them first.',
 							$count,
 							'i-downloads'
 						)
 					),
+					$name,
 					(int) $count
 				),
 				esc_html__( 'Category Not Empty', 'i-downloads' ),
@@ -367,6 +400,21 @@ class IDL_Category_Folders {
 				}
 			);
 		}
+	}
+
+	private function count_downloads_in_category( int $term_id ): int {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Pre-delete guard on core taxonomy tables; freshness required to block orphaning.
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				   FROM {$wpdb->term_relationships} tr
+				   JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+				  WHERE tt.term_id = %d
+				    AND tt.taxonomy = 'idl_category'",
+				$term_id
+			)
+		);
 	}
 
 	// -------------------------------------------------------------------------

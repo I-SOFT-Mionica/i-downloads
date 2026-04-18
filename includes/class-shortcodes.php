@@ -28,6 +28,10 @@ class IDL_Shortcodes {
 			[],
 			IDL_VERSION
 		);
+		$custom_css = get_option( 'idl_custom_css', '' );
+		if ( $custom_css ) {
+			wp_add_inline_style( 'idl-public', wp_strip_all_tags( $custom_css ) );
+		}
 		wp_enqueue_script(
 			'idl-public',
 			IDL_PLUGIN_URL . 'public/js/public-script.js',
@@ -88,7 +92,7 @@ class IDL_Shortcodes {
 				'category'              => '',
 				'include_subcategories' => '1',
 				'tag'                   => '',
-				'limit'                 => 10,
+				'limit'                 => idl_get_settings()['items_per_page'],
 				'orderby'               => 'date',
 				'order'                 => 'DESC',
 				'layout'                => '',
@@ -252,8 +256,11 @@ class IDL_Shortcodes {
 		}
 
 		$access = new IDL_Access_Control();
-		if ( ! $access->can_access_download( $post_id ) && ! is_user_logged_in() ) {
-			return ''; // Future: show a teaser with login prompt.
+		if ( ! $access->can_access_download( $post_id ) ) {
+			if ( ! is_user_logged_in() ) {
+				return '';
+			}
+			return '<p class="idl-restricted">' . esc_html__( 'You do not have permission to view this download.', 'i-downloads' ) . '</p>';
 		}
 
 		$settings = idl_get_settings();
@@ -325,7 +332,8 @@ class IDL_Shortcodes {
 				return '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '" class="wp-element-button idl-download-btn">'
 					. esc_html__( 'Login to Download', 'i-downloads' ) . '</a>';
 			}
-			return '';
+			return '<span class="idl-download-btn idl-download-btn--restricted">'
+				. esc_html__( 'Restricted', 'i-downloads' ) . '</span>';
 		}
 
 		return $this->render_download_button( $file, (int) $file->download_id, sanitize_text_field( $atts['text'] ), sanitize_html_class( $atts['class'] ) );
@@ -346,13 +354,21 @@ class IDL_Shortcodes {
 			'idl_count'
 		);
 
-		$count = 0;
+		$count       = 0;
+		$access      = new IDL_Access_Control();
+		$download_id = 0;
 
 		if ( absint( $atts['file_id'] ) ) {
-			$file  = ( new IDL_File_Manager() )->get_file( absint( $atts['file_id'] ) );
-			$count = $file ? (int) $file->download_count : 0;
+			$file        = ( new IDL_File_Manager() )->get_file( absint( $atts['file_id'] ) );
+			$count       = $file ? (int) $file->download_count : 0;
+			$download_id = $file ? (int) $file->download_id : 0;
 		} elseif ( absint( $atts['id'] ) ) {
-			$count = (int) get_post_meta( absint( $atts['id'] ), '_idl_download_count', true );
+			$download_id = absint( $atts['id'] );
+			$count       = (int) get_post_meta( $download_id, '_idl_download_count', true );
+		}
+
+		if ( $download_id && ! $access->can_access_download( $download_id ) ) {
+			return '';
 		}
 
 		return esc_html( sprintf( $atts['format'], number_format_i18n( $count ) ) );
@@ -694,6 +710,8 @@ class IDL_Shortcodes {
 				echo $this->render_download_button( $first, $post_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			} elseif ( ! is_user_logged_in() ) {
 				echo '<a href="' . esc_url( wp_login_url( get_permalink() ) ) . '" class="wp-element-button idl-download-btn">' . esc_html__( 'Login', 'i-downloads' ) . '</a>';
+			} else {
+				echo '<span class="idl-download-btn idl-download-btn--restricted">' . esc_html__( 'Restricted', 'i-downloads' ) . '</span>';
 			}
 			echo '</td></tr>';
 		}

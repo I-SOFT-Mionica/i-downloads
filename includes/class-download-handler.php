@@ -38,6 +38,10 @@ class IDL_Download_Handler {
 			wp_die( esc_html__( 'This download is not currently available.', 'i-downloads' ), 404 );
 		}
 
+		if ( post_password_required( $download_id ) ) {
+			wp_die( esc_html__( 'This download is password-protected. Please visit the download page and enter the password first.', 'i-downloads' ), 403 );
+		}
+
 		// Access check
 		$access = new IDL_Access_Control();
 		if ( ! $access->can_access_download( $download_id ) ) {
@@ -47,6 +51,26 @@ class IDL_Download_Handler {
 				exit;
 			}
 			wp_die( esc_html__( 'You do not have permission to download this file.', 'i-downloads' ), 403 );
+		}
+
+		// Hotlink protection — block requests whose referer points off-site.
+		if ( get_option( 'idl_hotlink_protection', 0 ) ) {
+			$referer = isset( $_SERVER['HTTP_REFERER'] ) ? sanitize_url( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
+			if ( $referer && wp_parse_url( $referer, PHP_URL_HOST ) !== wp_parse_url( home_url(), PHP_URL_HOST ) ) {
+				wp_die( esc_html__( 'Direct linking to downloads from external sites is not allowed.', 'i-downloads' ), 403 );
+			}
+		}
+
+		// Rate limit — per-IP throttle using short-lived transients.
+		$rate_limit = (int) get_option( 'idl_rate_limit_per_hour', 0 );
+		if ( $rate_limit > 0 ) {
+			$ip_hash = 'idl_rl_' . md5( $this->client_ip() ?? 'unknown' );
+			$hits    = (int) get_transient( $ip_hash );
+			if ( $hits >= $rate_limit ) {
+				do_action( 'idl_rate_limit_exceeded', $this->client_ip(), $rate_limit );
+				wp_die( esc_html__( 'Download limit exceeded. Please try again later.', 'i-downloads' ), 429 );
+			}
+			set_transient( $ip_hash, $hits + 1, HOUR_IN_SECONDS );
 		}
 
 		do_action( 'idl_before_download', $file_id, $download_id, get_current_user_id() );
@@ -79,7 +103,9 @@ class IDL_Download_Handler {
 
 		$file_id = (int) $file->id;
 		$log_id  = new IDL_Download_Logger()->log( $download_id, $file_id );
-		$manager->increment_count( $file_id, $download_id );
+		if ( idl_get_settings()['enable_counting'] ) {
+			$manager->increment_count( $file_id, $download_id );
+		}
 		do_action( 'idl_after_download', $log_id );
 
 		$mime      = $file->file_mime ?: 'application/octet-stream';
@@ -149,6 +175,22 @@ class IDL_Download_Handler {
 		foreach ( $headers as $name => $value ) {
 			header( "{$name}: {$value}" );
 		}
+	}
+
+	private function client_ip(): ?string {
+		foreach ( [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ] as $header ) {
+			if ( empty( $_SERVER[ $header ] ) ) {
+				continue;
+			}
+			$ip = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
+			if ( str_contains( $ip, ',' ) ) {
+				$ip = trim( explode( ',', $ip )[0] );
+			}
+			if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+				return $ip;
+			}
+		}
+		return null;
 	}
 
 	private function resolve_path( object $file ): ?string {

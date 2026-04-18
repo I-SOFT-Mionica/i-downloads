@@ -221,6 +221,14 @@ class IDL_Rest_Api {
 			);
 		}
 
+		if ( ! current_user_can( 'edit_post', $download_id ) ) {
+			return new WP_Error(
+				'idl_forbidden',
+				__( 'You do not have permission to view this download\'s files.', 'i-downloads' ),
+				[ 'status' => 403 ]
+			);
+		}
+
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery

@@ -35,6 +35,7 @@ if ( is_array( $terms ) ) {
 }
 
 // Delete all plugin options
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup; no WP API for wildcard option delete.
 $wpdb->query(
 	$wpdb->prepare(
 		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",

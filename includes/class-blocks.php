@@ -4,26 +4,26 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Blocks {
 
 	public function register_hooks(): void {
-		add_action( 'init', [ $this, 'register' ] );
-		add_action( 'init', [ $this, 'register_block_template' ] );
-		add_filter( 'block_categories_all', [ $this, 'register_category' ], 10, 2 );
+		add_action( 'init', array( $this, 'register' ) );
+		add_action( 'init', array( $this, 'register_block_template' ) );
+		add_filter( 'block_categories_all', array( $this, 'register_category' ), 10, 2 );
 	}
 
 	public function register_category( array $categories ): array {
 		// Prepend so it appears at the top of the inserter.
 		array_unshift(
 			$categories,
-			[
+			array(
 				'slug'  => 'i-downloads',
 				'title' => 'i-Downloads',
 				'icon'  => 'download',
-			]
+			)
 		);
 		return $categories;
 	}
 
 	public function register(): void {
-		foreach ( [ 'download-list', 'download-button', 'category-grid' ] as $block ) {
+		foreach ( array( 'download-list', 'download-button', 'category-grid' ) as $block ) {
 			$result = register_block_type( IDL_PLUGIN_DIR . 'blocks/' . $block );
 
 			// Make @wordpress/i18n __() calls in the block's editor script
@@ -51,7 +51,7 @@ class IDL_Blocks {
 		if ( function_exists( 'register_block_template' ) ) {
 			register_block_template(
 				'i-downloads//single-idl',
-				[
+				array(
 					'title'       => __( 'Single Download', 'i-downloads' ),
 					'description' => __( 'Template for individual download entries.', 'i-downloads' ),
 					'content'     =>
@@ -63,7 +63,7 @@ class IDL_Blocks {
 						'</main>' .
 						'<!-- /wp:group -->' .
 						'<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->',
-				]
+				)
 			);
 		}
 	}

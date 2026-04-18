@@ -4,10 +4,10 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Post_Type {
 
 	public function register_hooks(): void {
-		add_action( 'init', [ $this, 'register' ] );
-		add_action( 'init', [ $this, 'maybe_flush_rewrite_rules' ], 999 );
-		add_filter( 'the_content', [ $this, 'append_download_content' ] );
-		add_filter( 'wp_insert_post_data', [ $this, 'latinize_slug' ], 10, 2 );
+		add_action( 'init', array( $this, 'register' ) );
+		add_action( 'init', array( $this, 'maybe_flush_rewrite_rules' ), 999 );
+		add_filter( 'the_content', array( $this, 'append_download_content' ) );
+		add_filter( 'wp_insert_post_data', array( $this, 'latinize_slug' ), 10, 2 );
 	}
 
 	/**
@@ -35,7 +35,7 @@ class IDL_Post_Type {
 	}
 
 	public function register(): void {
-		$labels = [
+		$labels = array(
 			'name'               => _x( 'Downloads', 'post type general name', 'i-downloads' ),
 			'singular_name'      => _x( 'Download', 'post type singular name', 'i-downloads' ),
 			'menu_name'          => _x( 'i-Downloads', 'admin menu', 'i-downloads' ),
@@ -49,28 +49,28 @@ class IDL_Post_Type {
 			'search_items'       => __( 'Search Downloads', 'i-downloads' ),
 			'not_found'          => __( 'No downloads found.', 'i-downloads' ),
 			'not_found_in_trash' => __( 'No downloads found in Trash.', 'i-downloads' ),
-		];
+		);
 
 		register_post_type(
 			'idl',
-			[
+			array(
 				'labels'             => $labels,
 				'public'             => true,
 				'publicly_queryable' => true,
 				'show_ui'            => true,
 				'show_in_menu'       => true,
 				'query_var'          => true,
-				'rewrite'            => [ 'slug' => get_option( 'idl_archive_slug', 'downloads' ) ],
+				'rewrite'            => array( 'slug' => get_option( 'idl_archive_slug', 'downloads' ) ),
 				'capability_type'    => 'post',  // Standard WP caps — no custom mapping.
 				'map_meta_cap'       => true,    // Custom caps used only for settings/logs/export.
 				'has_archive'        => get_option( 'idl_archive_slug', 'downloads' ),
 				'hierarchical'       => false,
 				'menu_position'      => 26,
 				'menu_icon'          => 'dashicons-download',
-				'supports'           => [ 'title', 'thumbnail', 'excerpt', 'revisions', 'author' ],
+				'supports'           => array( 'title', 'thumbnail', 'excerpt', 'revisions', 'author' ),
 				'show_in_rest'       => true,
 				'rest_base'          => 'idl-downloads',
-			]
+			)
 		);
 
 		// Disable block editor for downloads — files are the primary content, not prose.
@@ -113,7 +113,7 @@ class IDL_Post_Type {
 		}
 
 		// Prevent double-injection if the filter runs more than once.
-		static $appended = [];
+		static $appended = array();
 		if ( isset( $appended[ $post->ID ] ) ) {
 			return $content;
 		}

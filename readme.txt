@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.5.3
+Stable tag: 0.6.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,6 +97,12 @@ Yes. The plugin detects FSE themes and injects the download card via `the_conten
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.6.0 =
+* **WPCS compliance.** Full WordPress Coding Standards pass — phpcbf auto-fixes plus manual remediation. Zero errors, zero warnings against `phpcs --standard=WordPress`.
+* **i18n audit.** All 440 translatable strings verified; regenerated POT file. Unified duplicate translator comments.
+* **Removed Ghostscript backend** from PDF thumbnail generation. Imagick-only — eliminates `exec()`/`shell_exec()` calls flagged by WPCS.
+* **Updated phpcs.xml.dist** with project-specific rule exclusions and prefix configuration.
 
 = 0.5.3 =
 * **Plugin Check compliance.** Added phpcs suppression comments with rationale for all WordPress Plugin Check warnings (DirectQuery, SlowDBQuery, NonceVerification, InterpolatedNotPrepared). Fixed unescaped output in category deletion guard.

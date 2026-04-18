@@ -4,17 +4,17 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Shortcodes {
 
 	public function register_hooks(): void {
-		add_shortcode( 'idl_list', [ $this, 'list_shortcode' ] );
-		add_shortcode( 'idl_categories', [ $this, 'categories_shortcode' ] );
-		add_shortcode( 'idl_download', [ $this, 'download_shortcode' ] );
-		add_shortcode( 'idl_button', [ $this, 'button_shortcode' ] );
-		add_shortcode( 'idl_count', [ $this, 'count_shortcode' ] );
-		add_shortcode( 'idl_search', [ $this, 'search_shortcode' ] );
-		add_shortcode( 'idl_recent', [ $this, 'recent_shortcode' ] );
-		add_shortcode( 'idl_popular', [ $this, 'popular_shortcode' ] );
+		add_shortcode( 'idl_list', array( $this, 'list_shortcode' ) );
+		add_shortcode( 'idl_categories', array( $this, 'categories_shortcode' ) );
+		add_shortcode( 'idl_download', array( $this, 'download_shortcode' ) );
+		add_shortcode( 'idl_button', array( $this, 'button_shortcode' ) );
+		add_shortcode( 'idl_count', array( $this, 'count_shortcode' ) );
+		add_shortcode( 'idl_search', array( $this, 'search_shortcode' ) );
+		add_shortcode( 'idl_recent', array( $this, 'recent_shortcode' ) );
+		add_shortcode( 'idl_popular', array( $this, 'popular_shortcode' ) );
 
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
-		add_action( 'wp_footer', [ $this, 'render_agree_modal' ] );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'wp_footer', array( $this, 'render_agree_modal' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -25,7 +25,7 @@ class IDL_Shortcodes {
 		wp_enqueue_style(
 			'idl-public',
 			IDL_PLUGIN_URL . 'public/css/public-style.css',
-			[],
+			array(),
 			IDL_VERSION
 		);
 		$custom_css = get_option( 'idl_custom_css', '' );
@@ -35,21 +35,21 @@ class IDL_Shortcodes {
 		wp_enqueue_script(
 			'idl-public',
 			IDL_PLUGIN_URL . 'public/js/public-script.js',
-			[],
+			array(),
 			IDL_VERSION,
 			true
 		);
 		wp_localize_script(
 			'idl-public',
 			'IDLPublic',
-			[
+			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'i18n'    => [
+				'i18n'    => array(
 					'agreeLabel'  => __( 'I have read and agree to the terms', 'i-downloads' ),
 					'agreeButton' => __( 'Download', 'i-downloads' ),
 					'cancel'      => __( 'Cancel', 'i-downloads' ),
-				],
-			]
+				),
+			)
 		);
 	}
 
@@ -88,7 +88,7 @@ class IDL_Shortcodes {
 
 	public function list_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'category'              => '',
 				'include_subcategories' => '1',
 				'tag'                   => '',
@@ -97,7 +97,7 @@ class IDL_Shortcodes {
 				'order'                 => 'DESC',
 				'layout'                => '',
 				'show_search'           => '0',
-			],
+			),
 			$atts,
 			'idl_list'
 		);
@@ -105,34 +105,34 @@ class IDL_Shortcodes {
 		$settings = idl_get_settings();
 		$layout   = $atts['layout'] ?: $settings['listing_layout'];
 
-		$query_args = [
+		$query_args = array(
 			'post_type'      => 'idl',
 			'post_status'    => 'publish',
 			'posts_per_page' => absint( $atts['limit'] ),
 			'orderby'        => sanitize_key( $atts['orderby'] ),
 			'order'          => 'ASC' === strtoupper( $atts['order'] ) ? 'ASC' : 'DESC',
 			'paged'          => max( 1, get_query_var( 'paged' ) ),
-		];
+		);
 
 		// Category filter
 		if ( $atts['category'] ) {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
-			$query_args['tax_query'][] = [
+			$query_args['tax_query'][] = array(
 				'taxonomy'         => 'idl_category',
 				'field'            => is_numeric( $atts['category'] ) ? 'term_id' : 'slug',
 				'terms'            => is_numeric( $atts['category'] ) ? absint( $atts['category'] ) : sanitize_text_field( $atts['category'] ),
 				'include_children' => filter_var( $atts['include_subcategories'], FILTER_VALIDATE_BOOLEAN ),
-			];
+			);
 		}
 
 		// Tag filter
 		if ( $atts['tag'] ) {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for tag filtering; term_relationships index covers this access pattern.
-			$query_args['tax_query'][] = [
+			$query_args['tax_query'][] = array(
 				'taxonomy' => 'idl_tag',
 				'field'    => is_numeric( $atts['tag'] ) ? 'term_id' : 'slug',
 				'terms'    => is_numeric( $atts['tag'] ) ? absint( $atts['tag'] ) : sanitize_text_field( $atts['tag'] ),
-			];
+			);
 		}
 
 		// Order by download count (stored in post meta)
@@ -148,7 +148,7 @@ class IDL_Shortcodes {
 		ob_start();
 
 		if ( filter_var( $atts['show_search'], FILTER_VALIDATE_BOOLEAN ) ) {
-			echo $this->search_shortcode( [ 'category' => $atts['category'] ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $this->search_shortcode( array( 'category' => $atts['category'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		if ( ! $query->have_posts() ) {
@@ -173,10 +173,10 @@ class IDL_Shortcodes {
 
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- paginate_links() returns safe HTML.
 			echo paginate_links(
-				[
+				array(
 					'total'   => $query->max_num_pages,
 					'current' => max( 1, get_query_var( 'paged' ) ),
-				]
+				)
 			);
 
 			echo '</div>';
@@ -191,25 +191,25 @@ class IDL_Shortcodes {
 
 	public function categories_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'parent'           => 0,
 				'columns'          => 3,
 				'show_count'       => '1',
 				'show_description' => '1',
-			],
+			),
 			$atts,
 			'idl_categories'
 		);
 
 		$terms = get_terms(
-			[
+			array(
 				'taxonomy'   => 'idl_category',
 				'parent'     => absint( $atts['parent'] ),
 				'hide_empty' => false,
 				'orderby'    => 'meta_value_num',
 				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Required for custom category ordering; termmeta index covers this access pattern.
 				'meta_key'   => '_idl_cat_sort_order',
-			]
+			)
 		);
 
 		if ( is_wp_error( $terms ) || empty( $terms ) ) {
@@ -235,12 +235,12 @@ class IDL_Shortcodes {
 
 	public function download_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'id'               => 0,
 				'show_description' => '1',
 				'show_files'       => '1',
 				'style'            => 'card', // card | compact | button-only
-			],
+			),
 			$atts,
 			'idl_download'
 		);
@@ -307,11 +307,11 @@ class IDL_Shortcodes {
 
 	public function button_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'file_id' => 0,
 				'text'    => __( 'Download', 'i-downloads' ),
 				'class'   => '',
-			],
+			),
 			$atts,
 			'idl_button'
 		);
@@ -345,11 +345,11 @@ class IDL_Shortcodes {
 
 	public function count_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'id'      => 0,   // download post ID
 				'file_id' => 0,   // specific file ID
 				'format'  => '%s',
-			],
+			),
 			$atts,
 			'idl_count'
 		);
@@ -380,10 +380,10 @@ class IDL_Shortcodes {
 
 	public function search_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'category'    => '',
 				'placeholder' => __( 'Search downloads…', 'i-downloads' ),
-			],
+			),
 			$atts,
 			'idl_search'
 		);
@@ -417,21 +417,21 @@ class IDL_Shortcodes {
 				<?php
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public search form, no state change.
 				$cat_filter = isset( $_GET['idl_cat'] ) ? sanitize_text_field( wp_unslash( $_GET['idl_cat'] ) ) : $atts['category'];
-				$query_args = [
+				$query_args = array(
 					'post_type'      => 'idl',
 					'post_status'    => 'publish',
 					'posts_per_page' => (int) idl_get_settings()['items_per_page'],
 					's'              => $search_term,
-				];
+				);
 				if ( $cat_filter ) {
 					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
-					$query_args['tax_query'] = [
-						[
+					$query_args['tax_query'] = array(
+						array(
 							'taxonomy' => 'idl_category',
 							'field'    => is_numeric( $cat_filter ) ? 'term_id' : 'slug',
 							'terms'    => is_numeric( $cat_filter ) ? absint( $cat_filter ) : $cat_filter,
-						],
-					];
+						),
+					);
 				}
 				$query    = new WP_Query( $query_args );
 				$settings = idl_get_settings();
@@ -474,41 +474,41 @@ class IDL_Shortcodes {
 
 	public function recent_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'limit'    => 5,
 				'days'     => 0,
 				'category' => '',
-			],
+			),
 			$atts,
 			'idl_recent'
 		);
 
-		$query_args = [
+		$query_args = array(
 			'post_type'      => 'idl',
 			'post_status'    => 'publish',
 			'posts_per_page' => absint( $atts['limit'] ),
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-		];
+		);
 
 		if ( absint( $atts['days'] ) ) {
-			$query_args['date_query'] = [
-				[
+			$query_args['date_query'] = array(
+				array(
 					'after'     => absint( $atts['days'] ) . ' days ago',
 					'inclusive' => true,
-				],
-			];
+				),
+			);
 		}
 
 		if ( $atts['category'] ) {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
-			$query_args['tax_query'] = [
-				[
+			$query_args['tax_query'] = array(
+				array(
 					'taxonomy' => 'idl_category',
 					'field'    => is_numeric( $atts['category'] ) ? 'term_id' : 'slug',
 					'terms'    => is_numeric( $atts['category'] ) ? absint( $atts['category'] ) : sanitize_text_field( $atts['category'] ),
-				],
-			];
+				),
+			);
 		}
 
 		return $this->render_query_as_cards( $query_args );
@@ -520,16 +520,16 @@ class IDL_Shortcodes {
 
 	public function popular_shortcode( array $atts ): string {
 		$atts = shortcode_atts(
-			[
+			array(
 				'limit'    => 5,
 				'period'   => 'all', // all | 30d | 7d
 				'category' => '',
-			],
+			),
 			$atts,
 			'idl_popular'
 		);
 
-		$query_args = [
+		$query_args = array(
 			'post_type'      => 'idl',
 			'post_status'    => 'publish',
 			'posts_per_page' => absint( $atts['limit'] ),
@@ -537,7 +537,7 @@ class IDL_Shortcodes {
 			'meta_key'       => '_idl_download_count',
 			'orderby'        => 'meta_value_num',
 			'order'          => 'DESC',
-		];
+		);
 
 		// For period filtering we'd need to query the log table directly —
 		// for now 'all' is supported; 30d/7d falls back to all-time.
@@ -545,13 +545,13 @@ class IDL_Shortcodes {
 
 		if ( $atts['category'] ) {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
-			$query_args['tax_query'] = [
-				[
+			$query_args['tax_query'] = array(
+				array(
 					'taxonomy' => 'idl_category',
 					'field'    => is_numeric( $atts['category'] ) ? 'term_id' : 'slug',
 					'terms'    => is_numeric( $atts['category'] ) ? absint( $atts['category'] ) : sanitize_text_field( $atts['category'] ),
-				],
-			];
+				),
+			);
 		}
 
 		return $this->render_query_as_cards( $query_args );
@@ -584,7 +584,7 @@ class IDL_Shortcodes {
 	/**
 	 * Render a plugin template, injecting variables into scope.
 	 */
-	private function render_template( string $name, array $vars = [] ): void {
+	private function render_template( string $name, array $vars = array() ): void {
 		$path = IDL_PLUGIN_DIR . 'public/views/' . $name . '.php';
 		if ( ! file_exists( $path ) ) {
 			return;

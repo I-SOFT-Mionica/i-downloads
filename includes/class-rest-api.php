@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Rest_Api {
 
 	public function register_hooks(): void {
-		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
 	public function register_routes(): void {
@@ -19,108 +19,108 @@ class IDL_Rest_Api {
 		register_rest_route(
 			$ns,
 			'/downloads',
-			[
+			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'get_downloads' ],
-				'permission_callback' => [ $this, 'editor_permission' ],
-				'args'                => [
-					'per_page' => [
+				'callback'            => array( $this, 'get_downloads' ),
+				'permission_callback' => array( $this, 'editor_permission' ),
+				'args'                => array(
+					'per_page' => array(
 						'default'           => 20,
 						'sanitize_callback' => 'absint',
-					],
-					'search'   => [
+					),
+					'search'   => array(
 						'default'           => '',
 						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'category' => [
+					),
+					'category' => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
-					],
-					'tag'      => [
+					),
+					'tag'      => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
-					],
-					'orderby'  => [
+					),
+					'orderby'  => array(
 						'default'           => 'date',
 						'sanitize_callback' => 'sanitize_key',
-					],
-					'order'    => [
+					),
+					'order'    => array(
 						'default'           => 'DESC',
 						'sanitize_callback' => 'sanitize_key',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 
 		// GET /i-downloads/v1/downloads/{id}/files
 		register_rest_route(
 			$ns,
 			'/downloads/(?P<id>\d+)/files',
-			[
+			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'get_download_files' ],
-				'permission_callback' => [ $this, 'editor_permission' ],
-				'args'                => [
-					'id' => [
+				'callback'            => array( $this, 'get_download_files' ),
+				'permission_callback' => array( $this, 'editor_permission' ),
+				'args'                => array(
+					'id' => array(
 						'required'          => true,
 						'validate_callback' => fn( $v ) => is_numeric( $v ) && $v > 0,
 						'sanitize_callback' => 'absint',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 
 		// GET /i-downloads/v1/categories
 		register_rest_route(
 			$ns,
 			'/categories',
-			[
+			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'get_categories' ],
-				'permission_callback' => [ $this, 'editor_permission' ],
-				'args'                => [
-					'parent' => [
+				'callback'            => array( $this, 'get_categories' ),
+				'permission_callback' => array( $this, 'editor_permission' ),
+				'args'                => array(
+					'parent' => array(
 						'default'           => null,
 						'sanitize_callback' => 'absint',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 
 		// GET /i-downloads/v1/stats/overview
 		register_rest_route(
 			$ns,
 			'/stats/overview',
-			[
+			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'get_stats_overview' ],
-				'permission_callback' => [ $this, 'editor_permission' ],
-			]
+				'callback'            => array( $this, 'get_stats_overview' ),
+				'permission_callback' => array( $this, 'editor_permission' ),
+			)
 		);
 
 		// GET /i-downloads/v1/logs
 		register_rest_route(
 			$ns,
 			'/logs',
-			[
+			array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => [ $this, 'get_logs' ],
-				'permission_callback' => [ $this, 'editor_permission' ],
-				'args'                => [
-					'per_page'    => [
+				'callback'            => array( $this, 'get_logs' ),
+				'permission_callback' => array( $this, 'editor_permission' ),
+				'args'                => array(
+					'per_page'    => array(
 						'default'           => 25,
 						'sanitize_callback' => 'absint',
-					],
-					'page'        => [
+					),
+					'page'        => array(
 						'default'           => 1,
 						'sanitize_callback' => 'absint',
-					],
-					'download_id' => [
+					),
+					'download_id' => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 	}
 
@@ -151,16 +151,16 @@ class IDL_Rest_Api {
 		$category = (int) $request->get_param( 'category' );
 		$tag      = (int) $request->get_param( 'tag' );
 
-		$allowed_orderby = [ 'date', 'title', 'modified' ];
+		$allowed_orderby = array( 'date', 'title', 'modified' );
 		$orderby         = (string) $request->get_param( 'orderby' );
 		$order           = 'ASC' === strtoupper( (string) $request->get_param( 'order' ) ) ? 'ASC' : 'DESC';
 
-		$args = [
+		$args = array(
 			'post_type'      => 'idl',
 			'post_status'    => 'publish',
 			'posts_per_page' => min( (int) $request->get_param( 'per_page' ), 100 ),
 			'no_found_rows'  => true,
-		];
+		);
 
 		if ( $search !== '' ) {
 			// Let WP sort by relevance when a search term is provided.
@@ -171,32 +171,32 @@ class IDL_Rest_Api {
 		}
 
 		if ( $category > 0 ) {
-			$args['tax_query'][] = [
+			$args['tax_query'][] = array(
 				'taxonomy' => 'idl_category',
 				'field'    => 'term_id',
 				'terms'    => $category,
-			];
+			);
 		}
 
 		if ( $tag > 0 ) {
-			$args['tax_query'][] = [
+			$args['tax_query'][] = array(
 				'taxonomy' => 'idl_tag',
 				'field'    => 'term_id',
 				'terms'    => $tag,
-			];
+			);
 		}
 
 		$posts = get_posts( $args );
 
 		$data = array_map(
 			function ( WP_Post $p ) {
-				$cats = wp_get_post_terms( $p->ID, 'idl_category', [ 'fields' => 'names' ] );
-				return [
+				$cats = wp_get_post_terms( $p->ID, 'idl_category', array( 'fields' => 'names' ) );
+				return array(
 					'id'         => $p->ID,
 					'title'      => $p->post_title,
 					'date'       => $p->post_date,
-					'categories' => is_array( $cats ) ? $cats : [],
-				];
+					'categories' => is_array( $cats ) ? $cats : array(),
+				);
 			},
 			$posts
 		);
@@ -217,7 +217,7 @@ class IDL_Rest_Api {
 			return new WP_Error(
 				'idl_not_found',
 				__( 'Download not found.', 'i-downloads' ),
-				[ 'status' => 404 ]
+				array( 'status' => 404 )
 			);
 		}
 
@@ -225,7 +225,7 @@ class IDL_Rest_Api {
 			return new WP_Error(
 				'idl_forbidden',
 				__( 'You do not have permission to view this download\'s files.', 'i-downloads' ),
-				[ 'status' => 403 ]
+				array( 'status' => 403 )
 			);
 		}
 
@@ -246,7 +246,7 @@ class IDL_Rest_Api {
 			return new WP_Error(
 				'idl_db_error',
 				__( 'Database error.', 'i-downloads' ),
-				[ 'status' => 500 ]
+				array( 'status' => 500 )
 			);
 		}
 
@@ -257,7 +257,7 @@ class IDL_Rest_Api {
 					__( 'File #%d', 'i-downloads' ),
 					(int) $f->id
 				);
-				return [
+				return array(
 					'id'           => (int) $f->id,
 					'title'        => $label,
 					'file_name'    => $f->file_name,
@@ -265,7 +265,7 @@ class IDL_Rest_Api {
 					'file_size'    => (int) $f->file_size,
 					'file_mime'    => $f->file_mime,
 					'external_url' => $f->external_url,
-				];
+				);
 			},
 			$files
 		);
@@ -279,12 +279,12 @@ class IDL_Rest_Api {
 	 * Returns all idl_category terms, optionally filtered by parent.
 	 */
 	public function get_categories( WP_REST_Request $request ): WP_REST_Response {
-		$args = [
+		$args = array(
 			'taxonomy'   => 'idl_category',
 			'hide_empty' => false,
 			'orderby'    => 'name',
 			'order'      => 'ASC',
-		];
+		);
 
 		$parent = $request->get_param( 'parent' );
 		if ( $parent !== null ) {
@@ -293,17 +293,17 @@ class IDL_Rest_Api {
 
 		$terms = get_terms( $args );
 		if ( is_wp_error( $terms ) ) {
-			return new WP_REST_Response( [], 200 );
+			return new WP_REST_Response( array(), 200 );
 		}
 
 		$data = array_map(
-			fn( WP_Term $t ) => [
+			fn( WP_Term $t ) => array(
 				'id'     => $t->term_id,
 				'name'   => $t->name,
 				'slug'   => $t->slug,
 				'parent' => $t->parent,
 				'count'  => $t->count,
-			],
+			),
 			$terms
 		);
 
@@ -319,13 +319,13 @@ class IDL_Rest_Api {
 		$stats = idl_get_stats_overview();
 
 		return new WP_REST_Response(
-			[
+			array(
 				'total_downloads'   => $stats['total_downloads'],
 				'total_files'       => $stats['total_files'],
 				'total_log_entries' => $stats['total_log_entries'],
 				'total_size_bytes'  => $stats['total_size_bytes'],
 				'top_downloads_30d' => array_slice( $stats['top_30d'], 0, 5 ),
-			],
+			),
 			200
 		);
 	}
@@ -391,7 +391,7 @@ class IDL_Rest_Api {
 			$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}idl_download_log" );
 		}
 
-		$response = new WP_REST_Response( $rows ?? [], 200 );
+		$response = new WP_REST_Response( $rows ?? array(), 200 );
 		$response->header( 'X-WP-Total', $total );
 		$response->header( 'X-WP-TotalPages', (int) ceil( $total / $per_page ) );
 

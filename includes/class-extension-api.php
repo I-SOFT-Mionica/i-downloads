@@ -4,13 +4,13 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Extension_Api {
 
 	/** @var array<string,array> Registered extensions keyed by slug. */
-	private static array $extensions = [];
+	private static array $extensions = array();
 
 	public function register_hooks(): void {
 		// Fire after init (priority 20) so extensions' plugins_loaded callbacks have run.
-		add_action( 'init', [ $this, 'fire_init' ], 20 );
+		add_action( 'init', array( $this, 'fire_init' ), 20 );
 		// Display queued admin notices from extensions
-		add_action( 'admin_notices', [ $this, 'render_admin_notices' ] );
+		add_action( 'admin_notices', array( $this, 'render_admin_notices' ) );
 	}
 
 	public function fire_init(): void {
@@ -21,7 +21,7 @@ class IDL_Extension_Api {
 		if ( ! current_user_can( 'idl_manage_settings' ) ) {
 			return;
 		}
-		$notices = get_option( 'idl_admin_notices', [] );
+		$notices = get_option( 'idl_admin_notices', array() );
 		if ( ! $notices ) {
 			return;
 		}
@@ -41,7 +41,7 @@ class IDL_Extension_Api {
 	 * @param array{slug:string,name:string,version:string} $args
 	 */
 	public static function register( array $args ): bool {
-		foreach ( [ 'slug', 'name', 'version' ] as $key ) {
+		foreach ( array( 'slug', 'name', 'version' ) as $key ) {
 			if ( empty( $args[ $key ] ) ) {
 				return false;
 			}

@@ -1,6 +1,6 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
 <div class="wrap">
-	<h1><?php esc_html_e( 'Licenses', 'i-downloads' ); ?> <a href="<?php echo esc_url( add_query_arg( [ 'action' => 'new' ], isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' ) ); ?>" class="page-title-action"><?php esc_html_e( 'Add New', 'i-downloads' ); ?></a></h1>
+	<h1><?php esc_html_e( 'Licenses', 'i-downloads' ); ?> <a href="<?php echo esc_url( add_query_arg( array( 'action' => 'new' ), isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '' ) ); ?>" class="page-title-action"><?php esc_html_e( 'Add New', 'i-downloads' ); ?></a></h1>
 
 	<?php // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only display of query-string flags. ?>
 	<?php if ( isset( $_GET['saved'] ) ) : ?>
@@ -15,7 +15,7 @@
 	<?php // phpcs:enable WordPress.Security.NonceVerification.Recommended ?>
 
 	<?php
-	if ( in_array( $action, [ 'new', 'edit' ], true ) ) :
+	if ( in_array( $action, array( 'new', 'edit' ), true ) ) :
 		$license_manager = new IDL_License_Manager();
 		$editing         = $edit_id ? $license_manager->get( $edit_id ) : null;
 		?>
@@ -86,10 +86,10 @@
 					<?php
 					echo esc_url(
 						add_query_arg(
-							[
+							array(
 								'action'  => 'edit',
 								'edit_id' => $lic->id,
-							]
+							)
 						)
 					);
 					?>

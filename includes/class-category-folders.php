@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Category_Folders {
 
 	/** Captured before term edit so we can detect slug / parent changes. */
-	private static array $pre_edit_path = [];
+	private static array $pre_edit_path = array();
 
 	private static function wp_fs() {
 		global $wp_filesystem;
@@ -30,18 +30,18 @@ class IDL_Category_Folders {
 
 	public function register_hooks(): void {
 		// Intercept the slug inside wp_insert_term() before it is stored.
-		add_filter( 'pre_term_slug', [ $this, 'filter_pre_term_slug' ], 10, 2 );
+		add_filter( 'pre_term_slug', array( $this, 'filter_pre_term_slug' ), 10, 2 );
 
 		// Priority PHP_INT_MAX so we are the *last* callback — nothing else
 		// can overwrite the slug after we rewrite it.
-		add_action( 'created_idl_category', [ $this, 'on_created' ], PHP_INT_MAX, 2 );
-		add_action( 'edit_term', [ $this, 'before_edit' ], 10, 3 );
-		add_action( 'edited_idl_category', [ $this, 'on_edited' ], PHP_INT_MAX, 2 );
-		add_action( 'pre_delete_term', [ $this, 'on_pre_delete' ], 10, 2 );
-		add_action( 'wp_ajax_delete-tag', [ $this, 'ajax_guard_delete' ], 0 );
+		add_action( 'created_idl_category', array( $this, 'on_created' ), PHP_INT_MAX, 2 );
+		add_action( 'edit_term', array( $this, 'before_edit' ), 10, 3 );
+		add_action( 'edited_idl_category', array( $this, 'on_edited' ), PHP_INT_MAX, 2 );
+		add_action( 'pre_delete_term', array( $this, 'on_pre_delete' ), 10, 2 );
+		add_action( 'wp_ajax_delete-tag', array( $this, 'ajax_guard_delete' ), 0 );
 
 		// Move files on disk when a download's category assignment changes.
-		add_action( 'set_object_terms', [ $this, 'on_object_terms_set' ], 10, 6 );
+		add_action( 'set_object_terms', array( $this, 'on_object_terms_set' ), 10, 6 );
 	}
 
 	/**
@@ -131,10 +131,10 @@ class IDL_Category_Folders {
 
 		$result = $wpdb->update(
 			$wpdb->terms,
-			[ 'slug' => $unique ],
-			[ 'term_id' => $term_id ],
-			[ '%s' ],
-			[ '%d' ]
+			array( 'slug' => $unique ),
+			array( 'term_id' => $term_id ),
+			array( '%s' ),
+			array( '%d' )
 		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		clean_term_cache( $term_id, 'idl_category' );
@@ -315,10 +315,10 @@ class IDL_Category_Folders {
 					(int) $count
 				),
 				esc_html__( 'Category Not Empty', 'i-downloads' ),
-				[
+				array(
 					'back_link' => true,
 					'response'  => 409,
-				]
+				)
 			);
 		}
 
@@ -330,7 +330,7 @@ class IDL_Category_Folders {
 
 		$contents = array_filter(
 			(array) glob( "{$fs_path}/{,.}*", GLOB_BRACE ),
-			fn ( string $p ): bool => ! in_array( basename( $p ), [ '.', '..' ], true )
+			fn ( string $p ): bool => ! in_array( basename( $p ), array( '.', '..' ), true )
 		);
 
 		if ( empty( $contents ) ) {
@@ -501,10 +501,10 @@ class IDL_Category_Folders {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Path rewrite on custom idl_files table; cache busted below.
 			$wpdb->update(
 				"{$wpdb->prefix}idl_files",
-				[ 'file_path' => $new_rel ],
-				[ 'id' => (int) $file->id ],
-				[ '%s' ],
-				[ '%d' ]
+				array( 'file_path' => $new_rel ),
+				array( 'id' => (int) $file->id ),
+				array( '%s' ),
+				array( '%d' )
 			);
 		}
 

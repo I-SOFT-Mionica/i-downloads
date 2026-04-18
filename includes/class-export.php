@@ -15,12 +15,12 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Export {
 
 	public function register_hooks(): void {
-		add_action( 'admin_post_idl_export_csv', [ $this, 'export_csv' ] );
-		add_action( 'admin_post_idl_export_json', [ $this, 'export_json' ] );
-		add_action( 'admin_post_idl_purge_logs', [ $this, 'purge_logs' ] );
+		add_action( 'admin_post_idl_export_csv', array( $this, 'export_csv' ) );
+		add_action( 'admin_post_idl_export_json', array( $this, 'export_json' ) );
+		add_action( 'admin_post_idl_purge_logs', array( $this, 'purge_logs' ) );
 
 		// Handle inline export links from the log viewer (not admin-post, GET-based with nonce).
-		add_action( 'admin_init', [ $this, 'handle_inline_export' ] );
+		add_action( 'admin_init', array( $this, 'handle_inline_export' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -75,11 +75,11 @@ class IDL_Export {
 		$deleted = ( new IDL_Download_Logger() )->purge_old_logs();
 
 		$redirect = add_query_arg(
-			[
+			array(
 				'post_type' => 'idl',
 				'page'      => 'idl-log',
 				'purged'    => $deleted,
-			],
+			),
 			admin_url( 'edit.php' )
 		);
 
@@ -127,7 +127,7 @@ class IDL_Export {
 					$like,
 					$filter_download
 				)
-			) ?? [];
+			) ?? array();
 		}
 		if ( $search !== '' ) {
 			return $wpdb->get_results(
@@ -145,7 +145,7 @@ class IDL_Export {
 					$like,
 					$like
 				)
-			) ?? [];
+			) ?? array();
 		}
 		if ( $filter_download > 0 ) {
 			return $wpdb->get_results(
@@ -161,7 +161,7 @@ class IDL_Export {
 					  LIMIT 50000",
 					$filter_download
 				)
-			) ?? [];
+			) ?? array();
 		}
 		return $wpdb->get_results(
 			"SELECT l.id, l.download_id, p.post_title AS download_title,
@@ -172,7 +172,7 @@ class IDL_Export {
 			   LEFT JOIN {$wpdb->prefix}idl_files f ON f.id = l.file_id
 			  ORDER BY l.downloaded_at DESC
 			  LIMIT 50000"
-		) ?? [];
+		) ?? array();
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}
 
@@ -205,7 +205,7 @@ class IDL_Export {
 		// Header row.
 		fputcsv(
 			$out,
-			[
+			array(
 				'ID',
 				'Download ID',
 				'Download Title',
@@ -217,13 +217,13 @@ class IDL_Export {
 				'User Agent',
 				'Referer',
 				'Downloaded At',
-			]
+			)
 		);
 
 		foreach ( $rows as $row ) {
 			fputcsv(
 				$out,
-				[
+				array(
 					$row->id,
 					$row->download_id,
 					$row->download_title ?? '',
@@ -235,7 +235,7 @@ class IDL_Export {
 					$row->user_agent ?? '',
 					$row->referer ?? '',
 					$row->downloaded_at,
-				]
+				)
 			);
 		}
 

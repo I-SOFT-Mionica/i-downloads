@@ -31,11 +31,11 @@
 		<?php
 		echo esc_url(
 			add_query_arg(
-				[
+				array(
 					'page'        => 'idl-log',
 					'post_type'   => 'idl',
 					'download_id' => get_the_ID(),
-				],
+				),
 				admin_url( 'edit.php' )
 			)
 		);

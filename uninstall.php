@@ -27,7 +27,12 @@ foreach ( $post_ids as $post_id ) {
 }
 
 // Delete all idl_category terms
-$terms = get_terms( [ 'taxonomy' => 'idl_category', 'hide_empty' => false ] );
+$terms = get_terms(
+	array(
+		'taxonomy'   => 'idl_category',
+		'hide_empty' => false,
+	)
+);
 if ( is_array( $terms ) ) {
 	foreach ( $terms as $term ) {
 		wp_delete_term( $term->term_id, 'idl_category' );
@@ -44,7 +49,7 @@ $wpdb->query(
 );
 
 // Remove capabilities from all roles
-$capabilities = [
+$capabilities = array(
 	'idl_view_downloads',
 	'idl_create_downloads',
 	'idl_edit_own_downloads',
@@ -54,9 +59,9 @@ $capabilities = [
 	'idl_view_logs',
 	'idl_export_logs',
 	'idl_manage_settings',
-];
+);
 
-$role_names = [ 'subscriber', 'contributor', 'author', 'editor', 'administrator' ];
+$role_names = array( 'subscriber', 'contributor', 'author', 'editor', 'administrator' );
 foreach ( $role_names as $role_name ) {
 	$role = get_role( $role_name );
 	if ( ! $role ) {
@@ -68,8 +73,8 @@ foreach ( $role_names as $role_name ) {
 }
 
 // Delete custom upload folder
-$upload_dir  = wp_upload_dir();
-$custom_dir  = $upload_dir['basedir'] . '/idl-files';
+$upload_dir = wp_upload_dir();
+$custom_dir = $upload_dir['basedir'] . '/idl-files';
 if ( is_dir( $custom_dir ) ) {
 	require_once ABSPATH . 'wp-admin/includes/file.php';
 	global $wp_filesystem;

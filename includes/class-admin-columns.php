@@ -4,13 +4,13 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Admin_Columns {
 
 	public function register_hooks(): void {
-		add_filter( 'manage_idl_posts_columns', [ $this, 'add_columns' ] );
-		add_action( 'manage_idl_posts_custom_column', [ $this, 'render_column' ], 10, 2 );
-		add_filter( 'manage_edit-idl_sortable_columns', [ $this, 'sortable_columns' ] );
+		add_filter( 'manage_idl_posts_columns', array( $this, 'add_columns' ) );
+		add_action( 'manage_idl_posts_custom_column', array( $this, 'render_column' ), 10, 2 );
+		add_filter( 'manage_edit-idl_sortable_columns', array( $this, 'sortable_columns' ) );
 	}
 
 	public function add_columns( array $columns ): array {
-		$new = [];
+		$new = array();
 		foreach ( $columns as $key => $label ) {
 			$new[ $key ] = $label;
 			if ( 'title' === $key ) {
@@ -29,7 +29,7 @@ class IDL_Admin_Columns {
 		switch ( $column ) {
 			case 'idl_thumbnail':
 				echo has_post_thumbnail( $post_id )
-					? get_the_post_thumbnail( $post_id, [ 40, 40 ] )
+					? get_the_post_thumbnail( $post_id, array( 40, 40 ) )
 					: '<span class="dashicons dashicons-media-default" style="font-size:32px;color:#ccc;line-height:40px;"></span>';
 				break;
 
@@ -41,10 +41,10 @@ class IDL_Admin_Columns {
 							'<a href="%s">%s</a>',
 							esc_url(
 								add_query_arg(
-									[
+									array(
 										'post_type'    => 'idl',
 										'idl_category' => $t->slug,
-									],
+									),
 									admin_url( 'edit.php' )
 								)
 							),
@@ -67,14 +67,14 @@ class IDL_Admin_Columns {
 				break;
 
 			case 'idl_access_role':
-				$labels = [
+				$labels = array(
 					'public'        => __( 'Public', 'i-downloads' ),
 					'subscriber'    => __( 'Subscriber+', 'i-downloads' ),
 					'contributor'   => __( 'Contributor+', 'i-downloads' ),
 					'author'        => __( 'Author+', 'i-downloads' ),
 					'editor'        => __( 'Editor+', 'i-downloads' ),
 					'administrator' => __( 'Admin only', 'i-downloads' ),
-				];
+				);
 				$role   = get_post_meta( $post_id, '_idl_access_role', true ) ?: 'public';
 				echo esc_html( $labels[ $role ] ?? $role );
 				break;

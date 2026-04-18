@@ -9,7 +9,7 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-$atts = [
+$atts = array(
 	'category'              => absint( $attributes['category'] ?? 0 ) ?: '',
 	'include_subcategories' => array_key_exists( 'includeSubcategories', $attributes )
 		? ( ! empty( $attributes['includeSubcategories'] ) ? '1' : '0' )
@@ -20,7 +20,7 @@ $atts = [
 	'order'                 => sanitize_key( $attributes['order'] ?? 'DESC' ),
 	'layout'                => sanitize_key( $attributes['layout'] ?? '' ),
 	'show_search'           => ! empty( $attributes['showSearch'] ) ? '1' : '0',
-];
+);
 
 // Reuse shortcode output — single source of truth
 echo do_shortcode( '[idl_list' . idl_atts_to_string( $atts ) . ']' ); // phpcs:ignore WordPress.Security.EscapeOutput

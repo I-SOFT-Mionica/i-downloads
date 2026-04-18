@@ -22,11 +22,11 @@ class IDL_File_Integrity {
 	private const CHUNK_SIZE = 200;
 
 	public function register_hooks(): void {
-		add_action( 'init', [ $this, 'maybe_schedule' ] );
-		add_action( self::CRON_HOOK, [ $this, 'run_scheduled_check' ] );
-		add_action( 'update_option_idl_integrity_check_enabled', [ $this, 'reschedule' ], 10, 0 );
-		add_action( 'update_option_idl_integrity_check_time', [ $this, 'reschedule' ], 10, 0 );
-		add_action( 'admin_post_idl_integrity_check_now', [ $this, 'handle_run_now' ] );
+		add_action( 'init', array( $this, 'maybe_schedule' ) );
+		add_action( self::CRON_HOOK, array( $this, 'run_scheduled_check' ) );
+		add_action( 'update_option_idl_integrity_check_enabled', array( $this, 'reschedule' ), 10, 0 );
+		add_action( 'update_option_idl_integrity_check_time', array( $this, 'reschedule' ), 10, 0 );
+		add_action( 'admin_post_idl_integrity_check_now', array( $this, 'handle_run_now' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -62,7 +62,7 @@ class IDL_File_Integrity {
 	private function next_run_timestamp(): int {
 		$raw = (string) get_option( 'idl_integrity_check_time', '02:30' );
 		if ( ! preg_match( '/^(\d{1,2}):(\d{2})$/', $raw, $m ) ) {
-			$m = [ '02:30', '2', '30' ];
+			$m = array( '02:30', '2', '30' );
 		}
 		$hour   = max( 0, min( 23, (int) $m[1] ) );
 		$minute = max( 0, min( 59, (int) $m[2] ) );
@@ -94,13 +94,13 @@ class IDL_File_Integrity {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->update(
 				"{$wpdb->prefix}idl_files",
-				[
+				array(
 					'is_missing'    => 1,
 					'missing_since' => current_time( 'mysql' ),
-				],
-				[ 'id' => (int) $file->id ],
-				[ '%d', '%s' ],
-				[ '%d' ]
+				),
+				array( 'id' => (int) $file->id ),
+				array( '%d', '%s' ),
+				array( '%d' )
 			);
 			IDL_File_Manager::bust_cache_for( $download_id, (int) $file->id );
 			delete_transient( 'idl_missing_count' );
@@ -124,10 +124,10 @@ class IDL_File_Integrity {
 			// we were the ones who flipped it.
 			if ( 'publish' === get_post_status( $download_id ) ) {
 				wp_update_post(
-					[
+					array(
 						'ID'          => $download_id,
 						'post_status' => 'draft',
-					]
+					)
 				);
 				update_post_meta( $download_id, '_idl_auto_unpublished_at', time() );
 			}
@@ -137,11 +137,11 @@ class IDL_File_Integrity {
 		// Idempotent notice: don't spam if we already queued one for this file.
 		if ( empty( $file->is_missing ) ) {
 			$url     = add_query_arg(
-				[
+				array(
 					'post_type' => 'idl',
 					'page'      => 'idl-broken-links',
 					'highlight' => (int) $file->id,
-				],
+				),
 				admin_url( 'edit.php' )
 			);
 			$title   = get_the_title( $download_id ) ?: '#' . $download_id;
@@ -188,14 +188,14 @@ class IDL_File_Integrity {
 	// -------------------------------------------------------------------------
 
 	public function run_scheduled_check(): array {
-		$summary = [
+		$summary = array(
 			'checked'     => 0,
 			'healed'      => 0,
 			'relinked'    => 0,
 			'still_gone'  => 0,
 			'started_at'  => current_time( 'mysql' ),
 			'finished_at' => null,
-		];
+		);
 
 		global $wpdb;
 
@@ -337,13 +337,13 @@ class IDL_File_Integrity {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Rename-recovery relink; cache invalidated below.
 			$wpdb->update(
 				"{$wpdb->prefix}idl_files",
-				[
+				array(
 					'file_path' => $new_rel,
 					'file_name' => basename( $candidate ),
-				],
-				[ 'id' => (int) $file->id ],
-				[ '%s', '%s' ],
-				[ '%d' ]
+				),
+				array( 'id' => (int) $file->id ),
+				array( '%s', '%s' ),
+				array( '%d' )
 			);
 			IDL_File_Manager::bust_cache_for( (int) $file->download_id, (int) $file->id );
 			return true;
@@ -357,13 +357,13 @@ class IDL_File_Integrity {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$wpdb->update(
 			"{$wpdb->prefix}idl_files",
-			[
+			array(
 				'is_missing'    => 0,
 				'missing_since' => null,
-			],
-			[ 'id' => (int) $file->id ],
-			[ '%d', '%s' ],
-			[ '%d' ]
+			),
+			array( 'id' => (int) $file->id ),
+			array( '%d', '%s' ),
+			array( '%d' )
 		);
 
 		$download_id = (int) $file->download_id;
@@ -399,10 +399,10 @@ class IDL_File_Integrity {
 
 		if ( 'draft' === get_post_status( $download_id ) ) {
 			wp_update_post(
-				[
+				array(
 					'ID'          => $download_id,
 					'post_status' => 'publish',
-				]
+				)
 			);
 		}
 		delete_post_meta( $download_id, '_idl_auto_unpublished_at' );
@@ -430,12 +430,12 @@ class IDL_File_Integrity {
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'post_type' => 'idl',
 					'page'      => 'idl-settings',
 					'tab'       => 'maintenance',
 					'idl_ran'   => 1,
-				],
+				),
 				admin_url( 'edit.php' )
 			)
 		);

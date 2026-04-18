@@ -42,11 +42,11 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM %i WHERE download_id = %d ORDER BY sort_order ASC, id ASC",
+				'SELECT * FROM %i WHERE download_id = %d ORDER BY sort_order ASC, id ASC',
 				$this->table,
 				$download_id
 			)
-		) ?: [];
+		) ?: array();
 
 		wp_cache_set( $key, $rows, self::CACHE_GROUP, HOUR_IN_SECONDS );
 		return $rows;
@@ -66,7 +66,7 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM %i WHERE id = %d",
+				'SELECT * FROM %i WHERE id = %d',
 				$this->table,
 				$file_id
 			)
@@ -98,7 +98,7 @@ class IDL_File_Manager {
 			}
 		}
 
-		$data    = [
+		$data    = array(
 			'download_id' => $download_id,
 			'file_type'   => 'local',
 			'title'       => sanitize_text_field( $args['title'] ?? '' ),
@@ -109,8 +109,8 @@ class IDL_File_Manager {
 			'file_mime'   => sanitize_mime_type( $args['file_mime'] ?? '' ),
 			'file_hash'   => sanitize_text_field( $args['file_hash'] ?? '' ),
 			'sort_order'  => absint( $args['sort_order'] ?? 0 ),
-		];
-		$formats = [ '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d' ];
+		);
+		$formats = array( '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d' );
 		if ( null !== $inode ) {
 			$data['inode'] = $inode;
 			$formats[]     = '%d';
@@ -132,13 +132,13 @@ class IDL_File_Manager {
 	/**
 	 * Add an external link (or mirror) to a download.
 	 */
-	public function add_external_link( int $download_id, string $url, array $args = [] ): int|false {
+	public function add_external_link( int $download_id, string $url, array $args = array() ): int|false {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$result = $wpdb->insert(
 			$this->table,
-			[
+			array(
 				'download_id'  => $download_id,
 				'file_type'    => 'external',
 				'title'        => sanitize_text_field( $args['title'] ?? $url ),
@@ -146,8 +146,8 @@ class IDL_File_Manager {
 				'external_url' => esc_url_raw( $url ),
 				'is_mirror'    => (int) ( $args['is_mirror'] ?? 0 ),
 				'sort_order'   => absint( $args['sort_order'] ?? 0 ),
-			],
-			[ '%d', '%s', '%s', '%s', '%s', '%d', '%d' ]
+			),
+			array( '%d', '%s', '%s', '%s', '%s', '%d', '%d' )
 		);
 
 		if ( false === $result ) {
@@ -170,13 +170,13 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 		$result = $wpdb->update(
 			$this->table,
-			[
+			array(
 				'title'       => sanitize_text_field( $title ),
 				'description' => wp_kses_post( $description ),
-			],
-			[ 'id' => $file_id ],
-			[ '%s', '%s' ],
-			[ '%d' ]
+			),
+			array( 'id' => $file_id ),
+			array( '%s', '%s' ),
+			array( '%d' )
 		);
 		if ( false !== $result ) {
 			$row = $this->get_file_uncached( $file_id );
@@ -198,7 +198,7 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Cache-bypass lookup used during cache invalidation; caching here would defeat the purpose.
 		return $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM %i WHERE id = %d",
+				'SELECT * FROM %i WHERE id = %d',
 				$this->table,
 				$file_id
 			)
@@ -221,7 +221,7 @@ class IDL_File_Manager {
 		do_action( 'idl_file_deleted', $file_id, (int) $file->download_id );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
-		$result = $wpdb->delete( $this->table, [ 'id' => $file_id ], [ '%d' ] );
+		$result = $wpdb->delete( $this->table, array( 'id' => $file_id ), array( '%d' ) );
 		if ( false !== $result ) {
 			self::bust_cache_for( (int) $file->download_id, $file_id );
 		}
@@ -237,7 +237,7 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Counter increment on custom table; cache invalidated below.
 		$wpdb->query(
 			$wpdb->prepare(
-				"UPDATE %i SET download_count = download_count + 1 WHERE id = %d",
+				'UPDATE %i SET download_count = download_count + 1 WHERE id = %d',
 				$this->table,
 				$file_id
 			)
@@ -246,7 +246,7 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregate over custom table immediately after write; freshness required.
 		$total = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT SUM(download_count) FROM %i WHERE download_id = %d",
+				'SELECT SUM(download_count) FROM %i WHERE download_id = %d',
 				$this->table,
 				$download_id
 			)
@@ -263,7 +263,7 @@ class IDL_File_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Dedup check on custom table; one-shot query during upload, not worth caching.
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT id FROM %i WHERE file_hash = %s LIMIT 1",
+				'SELECT id FROM %i WHERE file_hash = %s LIMIT 1',
 				$this->table,
 				$hash
 			)
@@ -277,16 +277,16 @@ class IDL_File_Manager {
 	 */
 	public function update_sort_order( array $order ): void {
 		global $wpdb;
-		$download_ids = [];
+		$download_ids = array();
 		foreach ( $order as $file_id => $sort_order ) {
 			$file_id = absint( $file_id );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->update(
 				$this->table,
-				[ 'sort_order' => absint( $sort_order ) ],
-				[ 'id' => $file_id ],
-				[ '%d' ],
-				[ '%d' ]
+				array( 'sort_order' => absint( $sort_order ) ),
+				array( 'id' => $file_id ),
+				array( '%d' ),
+				array( '%d' )
 			);
 			$row = $this->get_file_uncached( $file_id );
 			if ( $row ) {

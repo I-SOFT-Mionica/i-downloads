@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Pdf_Thumbnail {
 
 	public function register_hooks(): void {
-		add_action( 'idl_file_uploaded', [ $this, 'maybe_generate' ], 10, 2 );
-		add_action( 'admin_notices', [ $this, 'maybe_show_notice' ] );
+		add_action( 'idl_file_uploaded', array( $this, 'maybe_generate' ), 10, 2 );
+		add_action( 'admin_notices', array( $this, 'maybe_show_notice' ) );
 	}
 
 	public function maybe_generate( int $file_id, int $download_id ): void {
@@ -34,14 +34,14 @@ class IDL_Pdf_Thumbnail {
 
 		$args = apply_filters(
 			'idl_pdf_thumbnail_args',
-			[
+			array(
 				'width'   => $settings['pdf_thumb_width'],
 				'height'  => $settings['pdf_thumb_height'],
 				'quality' => $settings['pdf_thumb_quality'],
-			]
+			)
 		);
 
-		$thumb_path = $this->render( $pdf_path, $backend, $args );
+		$thumb_path = $this->render( $pdf_path, $args );
 		if ( ! $thumb_path ) {
 			return;
 		}
@@ -57,37 +57,23 @@ class IDL_Pdf_Thumbnail {
 		if ( extension_loaded( 'imagick' ) && class_exists( 'Imagick' ) ) {
 			return 'imagick';
 		}
-		$gs = trim( (string) @shell_exec( 'which gs 2>/dev/null' ) );
-		if ( $gs ) {
-			return 'ghostscript';
-		}
 		return null;
 	}
 
-	private function render( string $pdf_path, string $backend, array $args ): ?string {
+	private function render( string $pdf_path, array $args ): ?string {
 		$out = sys_get_temp_dir() . '/idl_thumb_' . md5( $pdf_path . microtime() ) . '.jpg';
 
-		if ( 'imagick' === $backend ) {
-			try {
-				/** @var \Imagick $im */
-				$im = new \Imagick();
-				$im->setResolution( 150, 150 );
-				$im->readImage( $pdf_path . '[0]' );
-				$im->setImageFormat( 'jpeg' );
-				$im->setImageCompressionQuality( $args['quality'] );
-				$im->thumbnailImage( $args['width'], $args['height'], true );
-				$im->writeImage( $out );
-				$im->clear();
-			} catch ( Exception $e ) {
-				return null;
-			}
-		} elseif ( 'ghostscript' === $backend ) {
-			$cmd = sprintf(
-				'gs -dNOPAUSE -dBATCH -sDEVICE=jpeg -r150 -dFirstPage=1 -dLastPage=1 -sOutputFile=%s %s 2>/dev/null',
-				escapeshellarg( $out ),
-				escapeshellarg( $pdf_path )
-			);
-			@exec( $cmd ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		try {
+			$im = new \Imagick();
+			$im->setResolution( 150, 150 );
+			$im->readImage( $pdf_path . '[0]' );
+			$im->setImageFormat( 'jpeg' );
+			$im->setImageCompressionQuality( $args['quality'] );
+			$im->thumbnailImage( $args['width'], $args['height'], true );
+			$im->writeImage( $out );
+			$im->clear();
+		} catch ( Exception $e ) {
+			return null;
 		}
 
 		return file_exists( $out ) ? $out : null;
@@ -111,11 +97,11 @@ class IDL_Pdf_Thumbnail {
 		}
 
 		$att_id = wp_insert_attachment(
-			[
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_title'     => get_the_title( $parent_id ) . ' — PDF Thumbnail',
 				'post_status'    => 'inherit',
-			],
+			),
 			$upload['file'],
 			$parent_id
 		);
@@ -137,7 +123,7 @@ class IDL_Pdf_Thumbnail {
 		}
 		if ( ! $this->detect_backend() ) {
 			echo '<div class="notice notice-warning is-dismissible"><p>';
-			esc_html_e( 'i-Downloads: PDF thumbnail generation is disabled — neither Imagick nor Ghostscript is available on this server.', 'i-downloads' );
+			esc_html_e( 'i-Downloads: PDF thumbnail generation is disabled — the Imagick PHP extension is not available on this server.', 'i-downloads' );
 			echo '</p></div>';
 		}
 	}

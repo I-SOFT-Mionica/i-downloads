@@ -40,7 +40,7 @@ Options -Indexes
     Deny from all
 </IfModule>
 HTACCESS;
-			file_put_contents( $htaccess, $rules );
+			file_put_contents( $htaccess, $rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Runs during activation before WP_Filesystem is bootstrapped.
 		}
 	}
 
@@ -181,13 +181,13 @@ HTACCESS;
 	}
 
 	private static function register_capabilities(): void {
-		$role_caps = [
-			'subscriber'    => [ 'idl_view_downloads' ],
-			'contributor'   => [ 'idl_view_downloads' ],
-			'author'        => [ 'idl_view_downloads', 'idl_create_downloads', 'idl_edit_own_downloads' ],
-			'editor'        => [ 'idl_view_downloads', 'idl_create_downloads', 'idl_edit_own_downloads', 'idl_edit_all_downloads', 'idl_delete_downloads', 'idl_manage_categories', 'idl_view_logs' ],
-			'administrator' => [ 'idl_view_downloads', 'idl_create_downloads', 'idl_edit_own_downloads', 'idl_edit_all_downloads', 'idl_delete_downloads', 'idl_manage_categories', 'idl_view_logs', 'idl_export_logs', 'idl_manage_settings' ],
-		];
+		$role_caps = array(
+			'subscriber'    => array( 'idl_view_downloads' ),
+			'contributor'   => array( 'idl_view_downloads' ),
+			'author'        => array( 'idl_view_downloads', 'idl_create_downloads', 'idl_edit_own_downloads' ),
+			'editor'        => array( 'idl_view_downloads', 'idl_create_downloads', 'idl_edit_own_downloads', 'idl_edit_all_downloads', 'idl_delete_downloads', 'idl_manage_categories', 'idl_view_logs' ),
+			'administrator' => array( 'idl_view_downloads', 'idl_create_downloads', 'idl_edit_own_downloads', 'idl_edit_all_downloads', 'idl_delete_downloads', 'idl_manage_categories', 'idl_view_logs', 'idl_export_logs', 'idl_manage_settings' ),
+		);
 
 		foreach ( $role_caps as $role_name => $caps ) {
 			$role = get_role( $role_name );
@@ -208,8 +208,8 @@ HTACCESS;
 			return;
 		}
 
-		$licenses = [
-			[
+		$licenses = array(
+			array(
 				'title'       => 'Public Domain / Јавно власништво',
 				'slug'        => 'public-domain',
 				'description' => 'No rights reserved. Free for any use.',
@@ -217,8 +217,8 @@ HTACCESS;
 				'url'         => 'https://creativecommons.org/publicdomain/zero/1.0/',
 				'is_default'  => 0,
 				'sort_order'  => 1,
-			],
-			[
+			),
+			array(
 				'title'       => 'All Rights Reserved / Сва права задржана',
 				'slug'        => 'all-rights-reserved',
 				'description' => 'All rights reserved by the author.',
@@ -226,8 +226,8 @@ HTACCESS;
 				'url'         => '',
 				'is_default'  => 0,
 				'sort_order'  => 2,
-			],
-			[
+			),
+			array(
 				'title'       => 'Creative Commons BY 4.0',
 				'slug'        => 'cc-by-4',
 				'description' => 'Free to use with attribution.',
@@ -235,8 +235,8 @@ HTACCESS;
 				'url'         => 'https://creativecommons.org/licenses/by/4.0/',
 				'is_default'  => 0,
 				'sort_order'  => 3,
-			],
-			[
+			),
+			array(
 				'title'       => 'Official Use Only / Службена употреба',
 				'slug'        => 'official-use-only',
 				'description' => 'Restricted to official government use only.',
@@ -244,11 +244,11 @@ HTACCESS;
 				'url'         => '',
 				'is_default'  => 0,
 				'sort_order'  => 4,
-			],
-		];
+			),
+		);
 
 		foreach ( $licenses as $license ) {
-			$wpdb->insert( "{$wpdb->prefix}idl_licenses", $license, [ '%s', '%s', '%s', '%s', '%s', '%d', '%d' ] );
+			$wpdb->insert( "{$wpdb->prefix}idl_licenses", $license, array( '%s', '%s', '%s', '%s', '%s', '%d', '%d' ) );
 		}
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	}

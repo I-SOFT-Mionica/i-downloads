@@ -28,15 +28,15 @@ class IDL_Download_Logger {
 		$now   = current_time( 'mysql' );
 		$today = current_time( 'Y-m-d' );
 
-		$data   = [
+		$data   = array(
 			'download_id'   => $download_id,
 			'file_id'       => $file_id,
 			'user_id'       => $user->ID ?: null,
 			'user_login'    => $user->ID ? $user->user_login : null,
 			'downloaded_at' => $now,
 			'log_date'      => $today,
-		];
-		$format = [ '%d', '%d', '%d', '%s', '%s', '%s' ];
+		);
+		$format = array( '%d', '%d', '%d', '%s', '%s', '%s' );
 
 		// PII fields — only when detailed logging is explicitly enabled
 		if ( $settings['enable_detailed_logging'] ) {
@@ -90,7 +90,7 @@ class IDL_Download_Logger {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Retention cleanup on custom log table; never cached.
 		$deleted = (int) $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM %i WHERE downloaded_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				'DELETE FROM %i WHERE downloaded_at < DATE_SUB(NOW(), INTERVAL %d DAY)',
 				$this->table,
 				$days
 			)
@@ -104,7 +104,7 @@ class IDL_Download_Logger {
 	}
 
 	private function client_ip(): ?string {
-		foreach ( [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ] as $header ) {
+		foreach ( array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ) as $header ) {
 			if ( empty( $_SERVER[ $header ] ) ) {
 				continue;
 			}

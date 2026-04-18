@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Download_Handler {
 
 	public function register_hooks(): void {
-		add_filter( 'query_vars', [ $this, 'add_query_var' ] );
-		add_action( 'template_redirect', [ $this, 'handle' ] );
+		add_filter( 'query_vars', array( $this, 'add_query_var' ) );
+		add_action( 'template_redirect', array( $this, 'handle' ) );
 	}
 
 	public function add_query_var( array $vars ): array {
@@ -113,14 +113,14 @@ class IDL_Download_Handler {
 
 		$headers = apply_filters(
 			'idl_download_headers',
-			[
+			array(
 				'Content-Type'           => $mime,
 				'Content-Disposition'    => "attachment; filename=\"{$file_name}\"",
 				'Content-Length'         => (string) filesize( $file_path ),
 				'X-Content-Type-Options' => 'nosniff',
 				'Cache-Control'          => 'no-store, no-cache, must-revalidate',
 				'Pragma'                 => 'no-cache',
-			],
+			),
 			$file
 		);
 
@@ -178,7 +178,7 @@ class IDL_Download_Handler {
 	}
 
 	private function client_ip(): ?string {
-		foreach ( [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ] as $header ) {
+		foreach ( array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ) as $header ) {
 			if ( empty( $_SERVER[ $header ] ) ) {
 				continue;
 			}

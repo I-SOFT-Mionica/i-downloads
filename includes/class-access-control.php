@@ -4,13 +4,13 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Access_Control {
 
 	/** Role hierarchy from lowest to highest. */
-	private const HIERARCHY = [ 'subscriber', 'contributor', 'author', 'editor', 'administrator' ];
+	private const HIERARCHY = array( 'subscriber', 'contributor', 'author', 'editor', 'administrator' );
 
 	/** Stashed between pre_get_posts and posts_clauses for the active query. */
-	private array $current_accessible = [];
+	private array $current_accessible = array();
 
 	public function register_hooks(): void {
-		add_action( 'pre_get_posts', [ $this, 'filter_frontend_queries' ] );
+		add_action( 'pre_get_posts', array( $this, 'filter_frontend_queries' ) );
 	}
 
 	/**
@@ -66,7 +66,7 @@ class IDL_Access_Control {
 	 * Admin      → all values (caller should skip filtering entirely)
 	 */
 	public function get_accessible_role_values( int $user_id = 0 ): array {
-		$accessible = [ 'public' ];
+		$accessible = array( 'public' );
 
 		$user_id = $user_id ?: get_current_user_id();
 		if ( ! $user_id ) {
@@ -109,7 +109,7 @@ class IDL_Access_Control {
 		$post_type = $query->get( 'post_type' );
 		if ( 'idl' !== $post_type ) {
 			if ( ! is_array( $post_type ) || ! in_array( 'idl', $post_type, true ) ) {
-				if ( ! $query->is_tax( [ 'idl_category', 'idl_tag' ] ) && ! $query->is_post_type_archive( 'idl' ) ) {
+				if ( ! $query->is_tax( array( 'idl_category', 'idl_tag' ) ) && ! $query->is_post_type_archive( 'idl' ) ) {
 					return;
 				}
 			}
@@ -120,7 +120,7 @@ class IDL_Access_Control {
 		}
 
 		$this->current_accessible = $this->get_accessible_role_values();
-		add_filter( 'posts_clauses', [ $this, 'add_access_clauses' ], 10, 2 );
+		add_filter( 'posts_clauses', array( $this, 'add_access_clauses' ), 10, 2 );
 	}
 
 	/**
@@ -133,21 +133,21 @@ class IDL_Access_Control {
 		$post_type = $query->get( 'post_type' );
 		$is_idl    = 'idl' === $post_type
 			|| ( is_array( $post_type ) && in_array( 'idl', $post_type, true ) )
-			|| $query->is_tax( [ 'idl_category', 'idl_tag' ] )
+			|| $query->is_tax( array( 'idl_category', 'idl_tag' ) )
 			|| $query->is_post_type_archive( 'idl' );
 
 		if ( ! $is_idl ) {
 			return $clauses;
 		}
 
-		remove_filter( 'posts_clauses', [ $this, 'add_access_clauses' ], 10 );
+		remove_filter( 'posts_clauses', array( $this, 'add_access_clauses' ), 10 );
 
 		global $wpdb;
 
 		$accessible = $this->current_accessible;
 
 		$clauses['join'] .= $wpdb->prepare(
-			" LEFT JOIN %i AS idl_ar ON (%i.ID = idl_ar.post_id AND idl_ar.meta_key = %s)",
+			' LEFT JOIN %i AS idl_ar ON (%i.ID = idl_ar.post_id AND idl_ar.meta_key = %s)',
 			$wpdb->postmeta,
 			$wpdb->posts,
 			'_idl_access_role'

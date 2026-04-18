@@ -4,23 +4,23 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Admin_Meta_Boxes {
 
 	public function register_hooks(): void {
-		add_action( 'add_meta_boxes', [ $this, 'register' ] );
-		add_action( 'save_post_idl', [ $this, 'save' ], 10, 2 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
-		add_action( 'post_submitbox_misc_actions', [ $this, 'render_access_role_in_publish_box' ] );
-		add_filter( 'wp_insert_post_data', [ $this, 'strip_post_password' ], 10, 2 );
-		add_action( 'wp_ajax_idl_delete_file', [ $this, 'ajax_delete_file' ] );
-		add_action( 'wp_ajax_idl_save_file_order', [ $this, 'ajax_save_order' ] );
-		add_action( 'wp_ajax_idl_add_external', [ $this, 'ajax_add_external' ] );
-		add_action( 'wp_ajax_idl_update_file_meta', [ $this, 'ajax_update_file_meta' ] );
-		add_action( 'wp_ajax_idl_upload_file', [ $this, 'ajax_upload_file' ] );
-		add_action( 'wp_ajax_idl_browse_category', [ $this, 'ajax_browse_category' ] );
-		add_action( 'wp_ajax_idl_import_file', [ $this, 'ajax_import_file' ] );
+		add_action( 'add_meta_boxes', array( $this, 'register' ) );
+		add_action( 'save_post_idl', array( $this, 'save' ), 10, 2 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		add_action( 'post_submitbox_misc_actions', array( $this, 'render_access_role_in_publish_box' ) );
+		add_filter( 'wp_insert_post_data', array( $this, 'strip_post_password' ), 10, 2 );
+		add_action( 'wp_ajax_idl_delete_file', array( $this, 'ajax_delete_file' ) );
+		add_action( 'wp_ajax_idl_save_file_order', array( $this, 'ajax_save_order' ) );
+		add_action( 'wp_ajax_idl_add_external', array( $this, 'ajax_add_external' ) );
+		add_action( 'wp_ajax_idl_update_file_meta', array( $this, 'ajax_update_file_meta' ) );
+		add_action( 'wp_ajax_idl_upload_file', array( $this, 'ajax_upload_file' ) );
+		add_action( 'wp_ajax_idl_browse_category', array( $this, 'ajax_browse_category' ) );
+		add_action( 'wp_ajax_idl_import_file', array( $this, 'ajax_import_file' ) );
 	}
 
 	/** Resolve the single idl_category term id assigned to a download. */
 	public static function get_download_category( int $download_id ): ?int {
-		$terms = wp_get_object_terms( $download_id, 'idl_category', [ 'fields' => 'ids' ] );
+		$terms = wp_get_object_terms( $download_id, 'idl_category', array( 'fields' => 'ids' ) );
 		if ( is_wp_error( $terms ) || empty( $terms ) ) {
 			return null;
 		}
@@ -29,23 +29,23 @@ class IDL_Admin_Meta_Boxes {
 
 	public function enqueue( string $hook ): void {
 		global $post_type;
-		if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) || 'idl' !== $post_type ) {
+		if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) || 'idl' !== $post_type ) {
 			return;
 		}
 		wp_enqueue_script(
 			'idl-admin',
 			IDL_PLUGIN_URL . 'admin/js/admin-script.js',
-			[ 'jquery', 'jquery-ui-sortable' ],
+			array( 'jquery', 'jquery-ui-sortable' ),
 			IDL_VERSION,
 			true
 		);
 		wp_localize_script(
 			'idl-admin',
 			'IDL',
-			[
+			array(
 				'nonce'   => wp_create_nonce( 'idl_admin' ),
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'i18n'    => [
+				'i18n'    => array(
 					'confirmDelete' => __( 'Remove this file from the download?', 'i-downloads' ),
 					'edit'          => __( 'Edit', 'i-downloads' ),
 					'remove'        => __( 'Remove', 'i-downloads' ),
@@ -67,20 +67,20 @@ class IDL_Admin_Meta_Boxes {
 					'linkButton'    => __( 'Link to this download', 'i-downloads' ),
 					'loading'       => __( 'Loading…', 'i-downloads' ),
 					'noFolderFiles' => __( 'No files found in this category folder.', 'i-downloads' ),
-				],
-			]
+				),
+			)
 		);
-		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', [], IDL_VERSION );
+		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', array(), IDL_VERSION );
 		wp_add_inline_style( 'idl-admin', '#visibility-action, .misc-pub-visibility { display: none !important; }' );
 	}
 
 	public function register(): void {
 		// Files first — that is the primary purpose of this CPT.
-		add_meta_box( 'idl-files', __( 'Files', 'i-downloads' ), [ $this, 'render_files' ], 'idl', 'normal', 'high' );
+		add_meta_box( 'idl-files', __( 'Files', 'i-downloads' ), array( $this, 'render_files' ), 'idl', 'normal', 'high' );
 		// Description replaces the removed post editor.
-		add_meta_box( 'idl-description', __( 'Description', 'i-downloads' ), [ $this, 'render_description' ], 'idl', 'normal', 'high' );
-		add_meta_box( 'idl-version-info', __( 'Version & License', 'i-downloads' ), [ $this, 'render_version_info' ], 'idl', 'normal', 'default' );
-		add_meta_box( 'idl-stats', __( 'Statistics', 'i-downloads' ), [ $this, 'render_stats' ], 'idl', 'side', 'default' );
+		add_meta_box( 'idl-description', __( 'Description', 'i-downloads' ), array( $this, 'render_description' ), 'idl', 'normal', 'high' );
+		add_meta_box( 'idl-version-info', __( 'Version & License', 'i-downloads' ), array( $this, 'render_version_info' ), 'idl', 'normal', 'default' );
+		add_meta_box( 'idl-stats', __( 'Statistics', 'i-downloads' ), array( $this, 'render_stats' ), 'idl', 'side', 'default' );
 	}
 
 	// --- Render callbacks ---
@@ -119,14 +119,14 @@ class IDL_Admin_Meta_Boxes {
 		}
 		$access_role = get_post_meta( $post->ID, '_idl_access_role', true )
 			?: get_option( 'idl_default_access_role', 'public' );
-		$roles = [
+		$roles       = array(
 			'public'        => __( 'Public (everyone)', 'i-downloads' ),
 			'subscriber'    => __( 'Subscriber+', 'i-downloads' ),
 			'contributor'   => __( 'Contributor+', 'i-downloads' ),
 			'author'        => __( 'Author+', 'i-downloads' ),
 			'editor'        => __( 'Editor+', 'i-downloads' ),
 			'administrator' => __( 'Administrator only', 'i-downloads' ),
-		];
+		);
 		?>
 		<div class="misc-pub-section misc-pub-idl-access">
 			<span class="dashicons dashicons-lock" style="color:#82878c;margin-right:2px;"></span>
@@ -188,7 +188,7 @@ class IDL_Admin_Meta_Boxes {
 			return;
 		}
 
-		$valid_roles = [ 'public', 'subscriber', 'contributor', 'author', 'editor', 'administrator' ];
+		$valid_roles = array( 'public', 'subscriber', 'contributor', 'author', 'editor', 'administrator' );
 
 		// Access role — rendered in the Publish box via post_submitbox_misc_actions.
 		$default_role = get_option( 'idl_default_access_role', 'public' );
@@ -216,14 +216,14 @@ class IDL_Admin_Meta_Boxes {
 		check_ajax_referer( 'idl_admin', 'nonce' );
 		$file_id = absint( $_POST['file_id'] ?? 0 );
 		if ( ! $file_id ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid data.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Invalid data.', 'i-downloads' ) ) );
 		}
 		$file = new IDL_File_Manager()->get_file( $file_id );
 		if ( ! $file || ! current_user_can( 'edit_post', (int) $file->download_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
 		if ( ! new IDL_File_Manager()->delete_file( $file_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Could not delete file.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Could not delete file.', 'i-downloads' ) ) );
 		}
 		wp_send_json_success();
 	}
@@ -231,13 +231,13 @@ class IDL_Admin_Meta_Boxes {
 	public function ajax_save_order(): void {
 		check_ajax_referer( 'idl_admin', 'nonce' );
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
-		$order = isset( $_POST['order'] ) ? wp_unslash( $_POST['order'] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized per-element below.
+		$order = isset( $_POST['order'] ) ? wp_unslash( $_POST['order'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized per-element below.
 		if ( ! is_array( $order ) ) {
 			wp_send_json_error();
 		}
-		$sanitized = [];
+		$sanitized = array();
 		foreach ( $order as $fid => $pos ) {
 			$sanitized[ absint( $fid ) ] = absint( $pos );
 		}
@@ -250,23 +250,23 @@ class IDL_Admin_Meta_Boxes {
 		$download_id = absint( $_POST['download_id'] ?? 0 );
 		$url         = esc_url_raw( wp_unslash( $_POST['url'] ?? '' ) );
 		if ( ! $download_id || ! $url ) {
-			wp_send_json_error( [ 'message' => __( 'URL is required.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'URL is required.', 'i-downloads' ) ) );
 		}
 		if ( ! current_user_can( 'edit_post', $download_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
 		$file_id = new IDL_File_Manager()->add_external_link(
 			$download_id,
 			$url,
-			[
+			array(
 				'title'     => sanitize_text_field( wp_unslash( $_POST['title'] ?? $url ) ),
 				'is_mirror' => (int) ! empty( $_POST['is_mirror'] ),
-			]
+			)
 		);
 		if ( ! $file_id ) {
-			wp_send_json_error( [ 'message' => __( 'Could not add link.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Could not add link.', 'i-downloads' ) ) );
 		}
-		wp_send_json_success( [ 'file_id' => $file_id ] );
+		wp_send_json_success( array( 'file_id' => $file_id ) );
 	}
 
 	/**
@@ -277,23 +277,23 @@ class IDL_Admin_Meta_Boxes {
 
 		$file_id = absint( $_POST['file_id'] ?? 0 );
 		if ( ! $file_id ) {
-			wp_send_json_error( [ 'message' => __( 'Invalid file id.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Invalid file id.', 'i-downloads' ) ) );
 		}
 
 		$manager = new IDL_File_Manager();
 		$file    = $manager->get_file( $file_id );
 		if ( ! $file || ! current_user_can( 'edit_post', (int) $file->download_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
 
 		$title       = sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) );
 		$description = sanitize_textarea_field( wp_unslash( $_POST['description'] ?? '' ) );
 
 		if ( ! $manager->update_meta( $file_id, $title, $description ) ) {
-			wp_send_json_error( [ 'message' => __( 'Could not save changes.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Could not save changes.', 'i-downloads' ) ) );
 		}
 
-		wp_send_json_success( [ 'file' => $manager->get_file( $file_id ) ] );
+		wp_send_json_success( array( 'file' => $manager->get_file( $file_id ) ) );
 	}
 
 	/**
@@ -305,16 +305,16 @@ class IDL_Admin_Meta_Boxes {
 
 		$download_id = absint( $_POST['download_id'] ?? 0 );
 		if ( ! $download_id || ! current_user_can( 'edit_post', $download_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
 
 		if ( empty( $_FILES['file'] ) || ! empty( $_FILES['file']['error'] ) ) {
-			wp_send_json_error( [ 'message' => __( 'No file uploaded or upload error.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'No file uploaded or upload error.', 'i-downloads' ) ) );
 		}
 
 		$category_id = self::get_download_category( $download_id );
 		if ( ! $category_id ) {
-			wp_send_json_error( [ 'message' => __( 'Assign a category to this download and save before uploading files.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Assign a category to this download and save before uploading files.', 'i-downloads' ) ) );
 		}
 
 		$upload        = $_FILES['file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- File upload handled by WP move_uploaded_file.
@@ -322,19 +322,19 @@ class IDL_Admin_Meta_Boxes {
 		$sanitized     = idl_sanitize_filename( $original_name );
 
 		if ( $sanitized['error'] ) {
-			wp_send_json_error( [ 'message' => $sanitized['error'] ] );
+			wp_send_json_error( array( 'message' => $sanitized['error'] ) );
 		}
 
 		$slug = $sanitized['slug'];
 		if ( idl_filename_collision( $slug, $category_id ) ) {
 			wp_send_json_error(
-				[
+				array(
 					'message' => sprintf(
 					/* translators: %s: filename */
 						__( 'A file named "%s" already exists in this category. Rename the file and try again.', 'i-downloads' ),
 						$slug
 					),
-				]
+				)
 			);
 		}
 
@@ -344,13 +344,13 @@ class IDL_Admin_Meta_Boxes {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$handled = wp_handle_upload(
 			$_FILES['file'], // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wp_handle_upload validates.
-			[
+			array(
 				'test_form' => false,
 				'action'    => 'idl_upload_file',
-			]
+			)
 		);
 		if ( isset( $handled['error'] ) ) {
-			wp_send_json_error( [ 'message' => $handled['error'] ] );
+			wp_send_json_error( array( 'message' => $handled['error'] ) );
 		}
 
 		global $wp_filesystem;
@@ -358,29 +358,29 @@ class IDL_Admin_Meta_Boxes {
 			WP_Filesystem();
 		}
 		if ( ! $wp_filesystem->move( $handled['file'], $target_abs, true ) ) {
-			wp_send_json_error( [ 'message' => __( 'Failed to save the uploaded file.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Failed to save the uploaded file.', 'i-downloads' ) ) );
 		}
 
 		$rel_path = idl_category_folder_path( $category_id ) . '/' . $slug;
 		$manager  = new IDL_File_Manager();
 		$file_id  = $manager->add_local_file(
 			$download_id,
-			[
+			array(
 				'title'     => idl_autofill_title( $sanitized['original_title'] ),
 				'file_name' => $slug,
 				'file_path' => $rel_path,
 				'file_size' => (int) $upload['size'],
 				'file_mime' => function_exists( 'mime_content_type' ) ? ( mime_content_type( $target_abs ) ?: $upload['type'] ) : $upload['type'],
 				'file_hash' => hash_file( 'sha256', $target_abs ),
-			]
+			)
 		);
 
 		if ( ! $file_id ) {
 			wp_delete_file( $target_abs );
-			wp_send_json_error( [ 'message' => __( 'Could not save file record.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Could not save file record.', 'i-downloads' ) ) );
 		}
 
-		wp_send_json_success( [ 'file' => $manager->get_file( $file_id ) ] );
+		wp_send_json_success( array( 'file' => $manager->get_file( $file_id ) ) );
 	}
 
 	/**
@@ -392,26 +392,26 @@ class IDL_Admin_Meta_Boxes {
 
 		$download_id = absint( $_POST['download_id'] ?? 0 );
 		if ( ! $download_id || ! current_user_can( 'edit_post', $download_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
 
 		$category_id = self::get_download_category( $download_id );
 		if ( ! $category_id ) {
 			wp_send_json_success(
-				[
-					'files'    => [],
+				array(
+					'files'    => array(),
 					'category' => null,
-				]
+				)
 			);
 		}
 
 		$folder = idl_category_fs_path( $category_id );
 		if ( ! is_dir( $folder ) ) {
 			wp_send_json_success(
-				[
-					'files'    => [],
+				array(
+					'files'    => array(),
 					'category' => idl_category_folder_path( $category_id ),
-				]
+				)
 			);
 		}
 
@@ -425,26 +425,26 @@ class IDL_Admin_Meta_Boxes {
 		);
 
 		$rel_base = idl_category_folder_path( $category_id );
-		$items    = [];
+		$items    = array();
 		foreach ( (array) glob( "{$folder}/*" ) as $path ) {
 			if ( ! is_file( $path ) ) {
 				continue;
 			}
 			$name    = basename( $path );
 			$rel     = "{$rel_base}/{$name}";
-			$items[] = [
+			$items[] = array(
 				'name'    => $name,
 				'rel'     => $rel,
 				'size'    => filesize( $path ),
 				'tracked' => in_array( $rel, $tracked, true ),
-			];
+			);
 		}
 
 		wp_send_json_success(
-			[
+			array(
 				'files'    => $items,
 				'category' => $rel_base,
-			]
+			)
 		);
 	}
 
@@ -458,34 +458,34 @@ class IDL_Admin_Meta_Boxes {
 		$rel_path    = sanitize_text_field( wp_unslash( $_POST['rel_path'] ?? '' ) );
 
 		if ( ! $download_id || ! $rel_path || ! current_user_can( 'edit_post', $download_id ) ) {
-			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ], 403 );
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'i-downloads' ) ), 403 );
 		}
 
 		// Path traversal guard — resolved path must stay under idl_files_dir().
 		$base = realpath( idl_files_dir() );
 		$abs  = realpath( "{$base}/{$rel_path}" );
 		if ( ! $abs || ! $base || ! str_starts_with( $abs, $base ) || ! is_file( $abs ) ) {
-			wp_send_json_error( [ 'message' => __( 'File not found.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'File not found.', 'i-downloads' ) ) );
 		}
 
 		$name    = basename( $abs );
 		$manager = new IDL_File_Manager();
 		$file_id = $manager->add_local_file(
 			$download_id,
-			[
+			array(
 				'title'     => idl_autofill_title( pathinfo( $name, PATHINFO_FILENAME ) ),
 				'file_name' => $name,
 				'file_path' => $rel_path,
 				'file_size' => filesize( $abs ),
 				'file_mime' => function_exists( 'mime_content_type' ) ? ( mime_content_type( $abs ) ?: 'application/octet-stream' ) : 'application/octet-stream',
 				'file_hash' => hash_file( 'sha256', $abs ),
-			]
+			)
 		);
 
 		if ( ! $file_id ) {
-			wp_send_json_error( [ 'message' => __( 'Could not save file record.', 'i-downloads' ) ] );
+			wp_send_json_error( array( 'message' => __( 'Could not save file record.', 'i-downloads' ) ) );
 		}
 
-		wp_send_json_success( [ 'file' => $manager->get_file( $file_id ) ] );
+		wp_send_json_success( array( 'file' => $manager->get_file( $file_id ) ) );
 	}
 }

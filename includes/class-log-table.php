@@ -15,11 +15,11 @@ class IDL_Log_Table extends WP_List_Table {
 
 	public function __construct() {
 		parent::__construct(
-			[
+			array(
 				'singular' => 'log_entry',
 				'plural'   => 'log_entries',
 				'ajax'     => false,
-			]
+			)
 		);
 		$this->detailed = (bool) get_option( 'idl_enable_detailed_logging', false );
 	}
@@ -29,12 +29,12 @@ class IDL_Log_Table extends WP_List_Table {
 	// -------------------------------------------------------------------------
 
 	public function get_columns(): array {
-		$cols = [
+		$cols = array(
 			'cb'             => '<input type="checkbox" />',
 			'download_title' => __( 'Download', 'i-downloads' ),
 			'file_name'      => __( 'File', 'i-downloads' ),
 			'user_login'     => __( 'User', 'i-downloads' ),
-		];
+		);
 
 		if ( $this->detailed ) {
 			$cols['ip_address'] = __( 'IP Address', 'i-downloads' );
@@ -46,17 +46,17 @@ class IDL_Log_Table extends WP_List_Table {
 	}
 
 	public function get_sortable_columns(): array {
-		return [
-			'download_title' => [ 'download_title', false ],
-			'downloaded_at'  => [ 'downloaded_at', true ],  // default sort
-		];
+		return array(
+			'download_title' => array( 'download_title', false ),
+			'downloaded_at'  => array( 'downloaded_at', true ),  // default sort
+		);
 	}
 
 	protected function get_bulk_actions(): array {
 		if ( ! current_user_can( 'idl_manage_settings' ) ) {
-			return [];
+			return array();
 		}
-		return [ 'delete' => __( 'Delete', 'i-downloads' ) ];
+		return array( 'delete' => __( 'Delete', 'i-downloads' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -134,7 +134,7 @@ class IDL_Log_Table extends WP_List_Table {
 		$filter_download = isset( $_REQUEST['filter_download'] ) ? absint( $_REQUEST['filter_download'] ) : 0;
 
 		// Sorting
-		$orderby_whitelist = [ 'download_title', 'downloaded_at' ];
+		$orderby_whitelist = array( 'download_title', 'downloaded_at' );
 		$orderby           = isset( $_REQUEST['orderby'] ) && in_array( sanitize_key( wp_unslash( $_REQUEST['orderby'] ) ), $orderby_whitelist, true )
 			? sanitize_key( wp_unslash( $_REQUEST['orderby'] ) )
 			: 'downloaded_at';
@@ -182,7 +182,7 @@ class IDL_Log_Table extends WP_List_Table {
 					$per_page,
 					$offset
 				)
-			) ?? [];
+			) ?? array();
 		} elseif ( $search !== '' ) {
 			$total       = (int) $wpdb->get_var(
 				$wpdb->prepare(
@@ -214,7 +214,7 @@ class IDL_Log_Table extends WP_List_Table {
 					$per_page,
 					$offset
 				)
-			) ?? [];
+			) ?? array();
 		} elseif ( $filter_download > 0 ) {
 			$total       = (int) $wpdb->get_var(
 				$wpdb->prepare(
@@ -242,7 +242,7 @@ class IDL_Log_Table extends WP_List_Table {
 					$per_page,
 					$offset
 				)
-			) ?? [];
+			) ?? array();
 		} else {
 			$total       = (int) $wpdb->get_var(
 				"SELECT COUNT(*)
@@ -264,23 +264,23 @@ class IDL_Log_Table extends WP_List_Table {
 					$per_page,
 					$offset
 				)
-			) ?? [];
+			) ?? array();
 		}
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 
 		$this->set_pagination_args(
-			[
+			array(
 				'total_items' => $total,
 				'per_page'    => $per_page,
 				'total_pages' => (int) ceil( $total / $per_page ),
-			]
+			)
 		);
 
-		$this->_column_headers = [
+		$this->_column_headers = array(
 			$this->get_columns(),
-			[],
+			array(),
 			$this->get_sortable_columns(),
-		];
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -299,7 +299,7 @@ class IDL_Log_Table extends WP_List_Table {
 		}
 		check_admin_referer( 'bulk-log_entries' );
 
-		$ids = isset( $_REQUEST['log_ids'] ) ? array_map( 'absint', (array) $_REQUEST['log_ids'] ) : [];
+		$ids = isset( $_REQUEST['log_ids'] ) ? array_map( 'absint', (array) $_REQUEST['log_ids'] ) : array();
 		if ( ! $ids ) {
 			return;
 		}

@@ -15,9 +15,9 @@ class IDL_Cron {
 	private const HOOK = 'idl_daily_cron';
 
 	public function register_hooks(): void {
-		add_action( 'init', [ $this, 'schedule' ] );
-		add_action( self::HOOK, [ $this, 'run' ] );
-		add_action( 'idl_deactivate', [ $this, 'unschedule' ] );
+		add_action( 'init', array( $this, 'schedule' ) );
+		add_action( self::HOOK, array( $this, 'run' ) );
+		add_action( 'idl_deactivate', array( $this, 'unschedule' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -80,7 +80,7 @@ class IDL_Cron {
 			)
 		);
 
-		$hot_ids = array_map( 'intval', $hot_ids ?: [] );
+		$hot_ids = array_map( 'intval', $hot_ids ?: array() );
 
 		// Clear HOT flag on all idl posts.
 		$wpdb->query(

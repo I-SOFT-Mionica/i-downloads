@@ -8,7 +8,7 @@ $enabled    = (bool) get_option( 'idl_integrity_check_enabled', 0 );
 $time       = (string) get_option( 'idl_integrity_check_time', '02:30' );
 $autorelink = (bool) get_option( 'idl_integrity_autorelink', 1 );
 $use_inode  = (bool) get_option( 'idl_integrity_use_inode', 1 );
-$last_run   = get_option( 'idl_integrity_last_run', [] );
+$last_run   = get_option( 'idl_integrity_last_run', array() );
 
 list( $cur_h, $cur_m ) = array_pad( explode( ':', $time ), 2, '00' );
 

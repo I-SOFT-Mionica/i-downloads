@@ -13,7 +13,7 @@ $top_alltime       = $stats['top_alltime'];
 $top_30d           = $stats['top_30d'];
 
 // Index daily counts by date string for easy lookup
-$daily_map = [];
+$daily_map = array();
 foreach ( $stats['daily_30d'] as $row ) {
 	$daily_map[ $row->day ] = (int) $row->count;
 }
@@ -21,7 +21,7 @@ foreach ( $stats['daily_30d'] as $row ) {
 $max_daily = $daily_map ? max( $daily_map ) : 1;
 
 // Build a 30-day array
-$chart_days = [];
+$chart_days = array();
 for ( $i = 29; $i >= 0; $i-- ) {
 	$date                = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
 	$chart_days[ $date ] = $daily_map[ $date ] ?? 0;

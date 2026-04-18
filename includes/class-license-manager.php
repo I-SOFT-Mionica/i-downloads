@@ -20,8 +20,8 @@ class IDL_License_Manager {
 	}
 
 	public function register_hooks(): void {
-		add_action( 'admin_menu', [ $this, 'register_menu' ] );
-		add_action( 'admin_init', [ $this, 'handle_form_actions' ] );
+		add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		add_action( 'admin_init', array( $this, 'handle_form_actions' ) );
 	}
 
 	public function register_menu(): void {
@@ -31,7 +31,7 @@ class IDL_License_Manager {
 			__( 'Licenses', 'i-downloads' ),
 			'idl_manage_settings',
 			'idl-licenses',
-			[ $this, 'render_page' ]
+			array( $this, 'render_page' )
 		);
 	}
 
@@ -68,8 +68,8 @@ class IDL_License_Manager {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM %i ORDER BY sort_order ASC, id ASC", $this->table )
-		) ?: [];
+			$wpdb->prepare( 'SELECT * FROM %i ORDER BY sort_order ASC, id ASC', $this->table )
+		) ?: array();
 		wp_cache_set( 'all_licenses', $rows, self::CACHE_GROUP, HOUR_IN_SECONDS );
 		return $rows;
 	}
@@ -84,7 +84,7 @@ class IDL_License_Manager {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table read; cached below via wp_cache_set().
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM %i WHERE id = %d",
+				'SELECT * FROM %i WHERE id = %d',
 				$this->table,
 				$id
 			)
@@ -99,7 +99,7 @@ class IDL_License_Manager {
 		// Nonce verified by caller (handle_form_actions).
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$id   = absint( $_POST['license_id'] ?? 0 );
-		$data = [
+		$data = array(
 			'title'       => sanitize_text_field( wp_unslash( $_POST['title'] ?? '' ) ),
 			'slug'        => sanitize_title( wp_unslash( $_POST['slug'] ?? $_POST['title'] ?? '' ) ),
 			'description' => sanitize_text_field( wp_unslash( $_POST['description'] ?? '' ) ),
@@ -107,12 +107,12 @@ class IDL_License_Manager {
 			'url'         => esc_url_raw( wp_unslash( $_POST['url'] ?? '' ) ),
 			'is_default'  => (int) ! empty( $_POST['is_default'] ),
 			'sort_order'  => absint( $_POST['sort_order'] ?? 0 ),
-		];
-		$fmt  = [ '%s', '%s', '%s', '%s', '%s', '%d', '%d' ];
+		);
+		$fmt  = array( '%s', '%s', '%s', '%s', '%s', '%d', '%d' );
 
 		if ( $id ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
-			$wpdb->update( $this->table, $data, [ 'id' => $id ], $fmt, [ '%d' ] );
+			$wpdb->update( $this->table, $data, array( 'id' => $id ), $fmt, array( '%d' ) );
 		} else {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
 			$wpdb->insert( $this->table, $data, $fmt );
@@ -126,7 +126,7 @@ class IDL_License_Manager {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; full-group cache flush below.
 			$wpdb->query(
 				$wpdb->prepare(
-					"UPDATE %i SET is_default = 0 WHERE id != %d",
+					'UPDATE %i SET is_default = 0 WHERE id != %d',
 					$this->table,
 					$id
 				)
@@ -137,11 +137,11 @@ class IDL_License_Manager {
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'page'      => 'idl-licenses',
 					'post_type' => 'idl',
 					'saved'     => '1',
-				],
+				),
 				admin_url( 'edit.php' )
 			)
 		);
@@ -152,16 +152,16 @@ class IDL_License_Manager {
 		global $wpdb;
 		if ( $id ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table write; cache invalidated below.
-			$wpdb->delete( $this->table, [ 'id' => $id ], [ '%d' ] );
+			$wpdb->delete( $this->table, array( 'id' => $id ), array( '%d' ) );
 			self::bust_cache( $id );
 		}
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'page'      => 'idl-licenses',
 					'post_type' => 'idl',
 					'deleted'   => '1',
-				],
+				),
 				admin_url( 'edit.php' )
 			)
 		);

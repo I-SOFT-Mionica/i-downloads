@@ -7,14 +7,14 @@
 	<?php
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only tab selector; nonce belongs on form submit, not nav.
 	$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'general';
-	$tabs       = [
+	$tabs       = array(
 		'general'     => __( 'General', 'i-downloads' ),
 		'display'     => __( 'Display', 'i-downloads' ),
 		'security'    => __( 'Security', 'i-downloads' ),
 		'advanced'    => __( 'Advanced', 'i-downloads' ),
 		'maintenance' => __( 'Maintenance', 'i-downloads' ),
 		'extensions'  => __( 'Extensions', 'i-downloads' ),
-	];
+	);
 	?>
 	<nav class="nav-tab-wrapper">
 		<?php foreach ( $tabs as $tab => $label ) : ?>
@@ -22,11 +22,11 @@
 			<?php
 			echo esc_url(
 				add_query_arg(
-					[
+					array(
 						'page'      => 'idl-settings',
 						'post_type' => 'idl',
 						'tab'       => $tab,
-					],
+					),
 					admin_url( 'edit.php' )
 				)
 			);
@@ -60,12 +60,12 @@
 				<td>
 					<select name="idl_default_access_role">
 						<?php
-						foreach ( [
+						foreach ( array(
 							'public'        => __( 'Public', 'i-downloads' ),
 							'subscriber'    => __( 'Subscriber+', 'i-downloads' ),
 							'editor'        => __( 'Editor+', 'i-downloads' ),
 							'administrator' => __( 'Administrator only', 'i-downloads' ),
-						] as $v => $l ) :
+						) as $v => $l ) :
 							?>
 							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( get_option( 'idl_default_access_role', 'public' ), $v ); ?>><?php echo esc_html( $l ); ?></option>
 						<?php endforeach; ?>
@@ -131,11 +131,11 @@
 				<td>
 					<select name="idl_listing_layout">
 						<?php
-						foreach ( [
+						foreach ( array(
 							'list'  => __( 'List', 'i-downloads' ),
 							'grid'  => __( 'Grid', 'i-downloads' ),
 							'table' => __( 'Table', 'i-downloads' ),
-						] as $v => $l ) :
+						) as $v => $l ) :
 							?>
 							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( get_option( 'idl_listing_layout', 'list' ), $v ); ?>><?php echo esc_html( $l ); ?></option>
 						<?php endforeach; ?>
@@ -167,12 +167,12 @@
 				<td>
 					<select name="idl_serve_method">
 						<?php
-						foreach ( [
+						foreach ( array(
 							'auto'      => __( 'Auto-detect', 'i-downloads' ),
 							'xsendfile' => 'X-Sendfile (Apache)',
 							'xaccel'    => 'X-Accel-Redirect (Nginx)',
 							'php'       => __( 'PHP streaming', 'i-downloads' ),
-						] as $v => $l ) :
+						) as $v => $l ) :
 							?>
 							<option value="<?php echo esc_attr( $v ); ?>" <?php selected( get_option( 'idl_serve_method', 'auto' ), $v ); ?>><?php echo esc_html( $l ); ?></option>
 						<?php endforeach; ?>

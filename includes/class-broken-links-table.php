@@ -16,28 +16,28 @@ class IDL_Broken_Links_Table extends WP_List_Table {
 
 	public function __construct() {
 		parent::__construct(
-			[
+			array(
 				'singular' => 'broken_link',
 				'plural'   => 'broken_links',
 				'ajax'     => false,
-			]
+			)
 		);
 	}
 
 	public function get_columns(): array {
-		return [
+		return array(
 			'download_title' => __( 'Download', 'i-downloads' ),
 			'file_name'      => __( 'File', 'i-downloads' ),
 			'category'       => __( 'Expected folder', 'i-downloads' ),
 			'missing_since'  => __( 'Missing since', 'i-downloads' ),
 			'actions'        => __( 'Recover', 'i-downloads' ),
-		];
+		);
 	}
 
 	public function get_sortable_columns(): array {
-		return [
-			'missing_since' => [ 'missing_since', true ],
-		];
+		return array(
+			'missing_since' => array( 'missing_since', true ),
+		);
 	}
 
 	protected function column_download_title( object $item ): string {
@@ -142,20 +142,20 @@ class IDL_Broken_Links_Table extends WP_List_Table {
 			}
 		}
 
-		$this->items = $rows ?: [];
+		$this->items = $rows ?: array();
 
 		$this->set_pagination_args(
-			[
+			array(
 				'total_items' => $total,
 				'per_page'    => $per_page,
 				'total_pages' => (int) ceil( $total / $per_page ),
-			]
+			)
 		);
 
-		$this->_column_headers = [
+		$this->_column_headers = array(
 			$this->get_columns(),
-			[],
+			array(),
 			$this->get_sortable_columns(),
-		];
+		);
 	}
 }

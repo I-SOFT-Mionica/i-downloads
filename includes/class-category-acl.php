@@ -21,7 +21,7 @@ class IDL_Category_ACL {
 	private const string USER_META_KEY = '_idl_allowed_categories';
 
 	/** In-request memoization of effective (expanded) allowed sets per user. */
-	private static array $effective_cache = [];
+	private static array $effective_cache = array();
 
 	// -------------------------------------------------------------------------
 	// Hook registration
@@ -29,30 +29,30 @@ class IDL_Category_ACL {
 
 	public function register_hooks(): void {
 		// Capability enforcement on CPT edit/delete/create.
-		add_filter( 'map_meta_cap', [ $this, 'map_meta_cap' ], 10, 4 );
+		add_filter( 'map_meta_cap', array( $this, 'map_meta_cap' ), 10, 4 );
 
 		// Reject category-change saves when the target is outside the user's reach.
-		add_action( 'save_post_idl', [ $this, 'enforce_category_on_save' ], 1, 3 );
+		add_action( 'save_post_idl', array( $this, 'enforce_category_on_save' ), 1, 3 );
 
 		// Admin list filter — hide downloads the user can't write.
-		add_action( 'pre_get_posts', [ $this, 'filter_admin_list' ] );
+		add_action( 'pre_get_posts', array( $this, 'filter_admin_list' ) );
 
 		// Frontend filter: hide UNPUBLISHED downloads from users whose allowed
 		// category set doesn't cover them. Published downloads stay visible.
-		add_action( 'pre_get_posts', [ $this, 'filter_frontend_query' ] );
+		add_action( 'pre_get_posts', array( $this, 'filter_frontend_query' ) );
 
 		// Classic editor category metabox: hide forbidden terms from the
 		// picker so users don't even see what they can't write.
-		add_filter( 'get_terms_args', [ $this, 'filter_category_metabox_terms' ], 10, 2 );
+		add_filter( 'get_terms_args', array( $this, 'filter_category_metabox_terms' ), 10, 2 );
 
 		// Profile screen: render + save assigned categories.
-		add_action( 'show_user_profile', [ $this, 'render_profile_field' ] );
-		add_action( 'edit_user_profile', [ $this, 'render_profile_field' ] );
-		add_action( 'personal_options_update', [ $this, 'save_profile_field' ] );
-		add_action( 'edit_user_profile_update', [ $this, 'save_profile_field' ] );
+		add_action( 'show_user_profile', array( $this, 'render_profile_field' ) );
+		add_action( 'edit_user_profile', array( $this, 'render_profile_field' ) );
+		add_action( 'personal_options_update', array( $this, 'save_profile_field' ) );
+		add_action( 'edit_user_profile_update', array( $this, 'save_profile_field' ) );
 
 		// Enqueue tree CSS on the user profile screen.
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_profile_assets' ] );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_profile_assets' ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -68,7 +68,7 @@ class IDL_Category_ACL {
 	public static function get_explicit( int $user_id ): array {
 		$raw = get_user_meta( $user_id, self::USER_META_KEY, true );
 		if ( ! is_array( $raw ) ) {
-			return [];
+			return array();
 		}
 		return array_values( array_unique( array_map( 'intval', $raw ) ) );
 	}
@@ -85,7 +85,7 @@ class IDL_Category_ACL {
 		}
 
 		$explicit = self::get_explicit( $user_id );
-		$set      = [];
+		$set      = array();
 		foreach ( $explicit as $term_id ) {
 			$set[ $term_id ] = true;
 			$children        = get_term_children( $term_id, 'idl_category' );
@@ -116,7 +116,7 @@ class IDL_Category_ACL {
 		if ( self::is_unrestricted( $user_id ) ) {
 			return true;
 		}
-		$terms = wp_get_object_terms( $download_id, 'idl_category', [ 'fields' => 'ids' ] );
+		$terms = wp_get_object_terms( $download_id, 'idl_category', array( 'fields' => 'ids' ) );
 		if ( is_wp_error( $terms ) || empty( $terms ) ) {
 			// No category assigned yet (new draft / auto-draft). Allow access
 			// so the edit screen opens; save-time enforcement will reject any
@@ -146,7 +146,7 @@ class IDL_Category_ACL {
 	 * base check still fails. This only restricts further, never loosens.
 	 */
 	public function map_meta_cap( array $caps, string $cap, int $user_id, array $args ): array {
-		$watch = [ 'edit_post', 'delete_post', 'publish_post' ];
+		$watch = array( 'edit_post', 'delete_post', 'publish_post' );
 		if ( ! in_array( $cap, $watch, true ) ) {
 			return $caps;
 		}
@@ -217,10 +217,10 @@ class IDL_Category_ACL {
 				wp_die(
 					esc_html__( 'You do not have permission to save downloads in the target category.', 'i-downloads' ),
 					esc_html__( 'Permission Denied', 'i-downloads' ),
-					[
+					array(
 						'back_link' => true,
 						'response'  => 403,
-					]
+					)
 				);
 			}
 		}
@@ -249,17 +249,17 @@ class IDL_Category_ACL {
 		$effective = array_keys( self::get_effective( $user_id ) );
 		if ( empty( $effective ) ) {
 			// User has no categories at all — show nothing.
-			$query->set( 'post__in', [ 0 ] );
+			$query->set( 'post__in', array( 0 ) );
 			return;
 		}
 
 		$tax_query   = (array) $query->get( 'tax_query' );
-		$tax_query[] = [
+		$tax_query[] = array(
 			'taxonomy' => 'idl_category',
 			'field'    => 'term_id',
 			'terms'    => $effective,
 			'operator' => 'IN',
-		];
+		);
 		$query->set( 'tax_query', $tax_query );
 	}
 
@@ -285,7 +285,7 @@ class IDL_Category_ACL {
 		$post_type = $query->get( 'post_type' );
 		if ( 'idl' !== $post_type && ! ( is_array( $post_type ) && in_array( 'idl', $post_type, true ) ) ) {
 			// Untyped query on a taxonomy archive also counts.
-			if ( ! $query->is_tax( [ 'idl_category', 'idl_tag' ] ) && ! $query->is_post_type_archive( 'idl' ) ) {
+			if ( ! $query->is_tax( array( 'idl_category', 'idl_tag' ) ) && ! $query->is_post_type_archive( 'idl' ) ) {
 				return;
 			}
 		}
@@ -295,7 +295,7 @@ class IDL_Category_ACL {
 			return;
 		}
 
-		$effective = $user_id ? array_keys( self::get_effective( $user_id ) ) : [];
+		$effective = $user_id ? array_keys( self::get_effective( $user_id ) ) : array();
 
 		/*
 		 * Split into two sub-queries combined with OR:
@@ -308,7 +308,7 @@ class IDL_Category_ACL {
 		 * scoped to this one query.
 		 */
 		$query->set( 'idl_acl_effective_categories', $effective );
-		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ], 10, 2 );
+		add_filter( 'posts_clauses', array( $this, 'filter_posts_clauses' ), 10, 2 );
 	}
 
 	/**
@@ -321,7 +321,7 @@ class IDL_Category_ACL {
 		if ( null === $effective || '' === $effective ) {
 			return $clauses;
 		}
-		remove_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ], 10 );
+		remove_filter( 'posts_clauses', array( $this, 'filter_posts_clauses' ), 10 );
 
 		global $wpdb;
 
@@ -392,12 +392,12 @@ class IDL_Category_ACL {
 		if ( empty( $effective ) ) {
 			// No access at all — force an impossible include so the metabox
 			// renders empty instead of showing every term.
-			$args['include'] = [ 0 ];
+			$args['include'] = array( 0 );
 			return $args;
 		}
 
 		// Merge with any existing include list (rare, but play nice).
-		$existing_include = (array) ( $args['include'] ?? [] );
+		$existing_include = (array) ( $args['include'] ?? array() );
 		$args['include']  = $existing_include
 			? array_values( array_intersect( $existing_include, $effective ) )
 			: $effective;
@@ -410,10 +410,10 @@ class IDL_Category_ACL {
 	// -------------------------------------------------------------------------
 
 	public function enqueue_profile_assets( string $hook ): void {
-		if ( ! in_array( $hook, [ 'profile.php', 'user-edit.php' ], true ) ) {
+		if ( ! in_array( $hook, array( 'profile.php', 'user-edit.php' ), true ) ) {
 			return;
 		}
-		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', [], IDL_VERSION );
+		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', array(), IDL_VERSION );
 	}
 
 	public function render_profile_field( WP_User $user ): void {
@@ -445,7 +445,7 @@ class IDL_Category_ACL {
 		$ids = isset( $_POST['idl_allowed_categories'] )
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			? array_map( 'intval', (array) $_POST['idl_allowed_categories'] )
-			: [];
+			: array();
 		$ids = array_values( array_filter( $ids, fn( int $i ): bool => $i > 0 ) );
 		update_user_meta( $user_id, self::USER_META_KEY, $ids );
 
@@ -464,22 +464,22 @@ class IDL_Category_ACL {
 	 */
 	private function build_category_tree(): array {
 		$terms = get_terms(
-			[
+			array(
 				'taxonomy'   => 'idl_category',
 				'hide_empty' => false,
 				'orderby'    => 'name',
-			]
+			)
 		);
 		if ( is_wp_error( $terms ) || empty( $terms ) ) {
-			return [];
+			return array();
 		}
 
-		$nodes = [];
+		$nodes = array();
 		foreach ( $terms as $term ) {
-			$nodes[ (int) $term->term_id ] = [
+			$nodes[ (int) $term->term_id ] = array(
 				'term'     => $term,
-				'children' => [],
-			];
+				'children' => array(),
+			);
 		}
 		foreach ( $terms as $term ) {
 			$parent = (int) $term->parent;

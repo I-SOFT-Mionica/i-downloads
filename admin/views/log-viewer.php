@@ -16,14 +16,14 @@ $search          = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_
 
 // All downloads for filter dropdown.
 $all_downloads = get_posts(
-	[
+	array(
 		'post_type'      => 'idl',
 		'post_status'    => 'any',
 		'posts_per_page' => -1,
 		'orderby'        => 'title',
 		'order'          => 'ASC',
 		'no_found_rows'  => true,
-	]
+	)
 );
 
 $base_url = admin_url( 'edit.php?post_type=idl&page=idl-log' );

@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
 				<span class="idl-meta">
 					<?php
 					printf(
-						/* translators: %d: download count */
+						/* translators: %d: number of downloads in the category */
 						esc_html( _n( '%d download', '%d downloads', $term->count, 'i-downloads' ) ),
 						(int) $term->count
 					);

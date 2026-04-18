@@ -3,7 +3,7 @@
  * Plugin Name: i-Downloads
  * Plugin URI:  https://isoft.rs/i-downloads
  * Description: Hierarchical file download manager — categories, multi-file entries, secure download handler, audit logging, and role-based access control.
- * Version:     0.5.3
+ * Version:     0.6.0
  * Author:      I-SOFT Mionica
  * Author URI:  https://isoft.rs
  * License:     GPL v2 or later
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const IDL_VERSION = '0.5.3';
+const IDL_VERSION = '0.6.0';
 define( 'IDL_PLUGIN_FILE', __FILE__ );
 define( 'IDL_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'IDL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -31,7 +31,7 @@ spl_autoload_register(
 		if ( ! str_starts_with( $class, 'IDL_' ) ) {
 				return;
 		}
-		$name = strtolower( str_replace( [ 'IDL_', '_' ], [ '', '-' ], $class ) );
+		$name = strtolower( str_replace( array( 'IDL_', '_' ), array( '', '-' ), $class ) );
 		$path = IDL_PLUGIN_DIR . 'includes/class-' . $name . '.php';
 		if ( file_exists( $path ) ) {
 			require_once $path;
@@ -40,11 +40,11 @@ spl_autoload_register(
 );
 
 // Activation / deactivation
-register_activation_hook( __FILE__, [ 'IDL_Activator', 'activate' ] );
-register_deactivation_hook( __FILE__, [ 'IDL_Deactivator', 'deactivate' ] );
+register_activation_hook( __FILE__, array( 'IDL_Activator', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'IDL_Deactivator', 'deactivate' ) );
 
 // Ensure custom capabilities are always registered (guards against activation timing issues).
-add_action( 'init', [ 'IDL_Activator', 'maybe_register_capabilities' ] );
+add_action( 'init', array( 'IDL_Activator', 'maybe_register_capabilities' ) );
 
 // If the stored version differs from the current version, queue a rewrite flush and
 // run dbDelta so new table columns appear without manual deactivate/reactivate.
@@ -95,7 +95,7 @@ add_action(
 				}
 
 				// Classic theme fallbacks — single download uses the_content filter, no custom template needed.
-				$candidates = [];
+				$candidates = array();
 				if ( is_post_type_archive( 'idl' ) ) {
 					$candidates[] = 'archive-idl.php';
 				}

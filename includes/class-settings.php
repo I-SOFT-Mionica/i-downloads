@@ -4,40 +4,40 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Settings {
 
 	public function register_hooks(): void {
-		add_action( 'admin_menu', [ $this, 'register_menu' ] );
-		add_action( 'admin_init', [ $this, 'register_settings' ] );
-		add_action( 'admin_init', [ $this, 'handle_flush_rewrite' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'handle_flush_rewrite' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 	}
 
 	public function enqueue( string $hook ): void {
-		$idl_pages = [
+		$idl_pages = array(
 			'idl_page_idl-stats',
 			'idl_page_idl-log',
 			'idl_page_idl-settings',
 			'idl_page_idl-broken-links',
-		];
+		);
 		if ( ! in_array( $hook, $idl_pages, true ) ) {
 			return;
 		}
-		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', [], IDL_VERSION );
+		wp_enqueue_style( 'idl-admin', IDL_PLUGIN_URL . 'admin/css/admin-style.css', array(), IDL_VERSION );
 
 		if ( 'idl_page_idl-broken-links' === $hook ) {
-			wp_enqueue_script( 'idl-broken-links', IDL_PLUGIN_URL . 'admin/js/broken-links.js', [ 'jquery' ], IDL_VERSION, true );
+			wp_enqueue_script( 'idl-broken-links', IDL_PLUGIN_URL . 'admin/js/broken-links.js', array( 'jquery' ), IDL_VERSION, true );
 			wp_localize_script(
 				'idl-broken-links',
 				'idlBrokenLinks',
-				[
+				array(
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'idl_broken_links' ),
-					'i18n'    => [
+					'i18n'    => array(
 						'confirmMoveBack' => __( 'Move the file back to the original folder?', 'i-downloads' ),
 						'confirmReassign' => __( 'Move this download (and all its files) to the new category?', 'i-downloads' ),
 						'confirmSplit'    => __( 'Create a new download for this file in its new category?', 'i-downloads' ),
 						'confirmDetach'   => __( 'Remove this file from the download? The file on disk will not be deleted.', 'i-downloads' ),
 						'generic_error'   => __( 'Action failed. Please reload the page and try again.', 'i-downloads' ),
-					],
-				]
+					),
+				)
 			);
 		}
 	}
@@ -49,7 +49,7 @@ class IDL_Settings {
 			__( 'Statistics', 'i-downloads' ),
 			'idl_view_logs',
 			'idl-stats',
-			[ $this, 'render_stats' ]
+			array( $this, 'render_stats' )
 		);
 		add_submenu_page(
 			'edit.php?post_type=idl',
@@ -57,7 +57,7 @@ class IDL_Settings {
 			__( 'Download Log', 'i-downloads' ),
 			'idl_view_logs',
 			'idl-log',
-			[ $this, 'render_log' ]
+			array( $this, 'render_log' )
 		);
 
 		// Broken Links — label carries a count badge when rows are flagged.
@@ -72,7 +72,7 @@ class IDL_Settings {
 			$broken_label,
 			'idl_manage_settings',
 			'idl-broken-links',
-			[ $this, 'render_broken_links' ]
+			array( $this, 'render_broken_links' )
 		);
 
 		add_submenu_page(
@@ -81,7 +81,7 @@ class IDL_Settings {
 			__( 'Settings', 'i-downloads' ),
 			'idl_manage_settings',
 			'idl-settings',
-			[ $this, 'render_page' ]
+			array( $this, 'render_page' )
 		);
 	}
 
@@ -118,7 +118,7 @@ class IDL_Settings {
 	}
 
 	public function register_settings(): void {
-		$options = [
+		$options = array(
 			// General
 			'idl_default_access_role'      => 'sanitize_text_field',
 			'idl_enable_counting'          => 'absint',
@@ -156,13 +156,13 @@ class IDL_Settings {
 			'idl_delete_data_on_uninstall' => 'absint',
 			// Maintenance / File integrity
 			'idl_integrity_check_enabled'  => 'absint',
-			'idl_integrity_check_time'     => [ $this, 'sanitize_time' ],
+			'idl_integrity_check_time'     => array( $this, 'sanitize_time' ),
 			'idl_integrity_autorelink'     => 'absint',
 			'idl_integrity_use_inode'      => 'absint',
-		];
+		);
 
 		foreach ( $options as $option => $sanitize ) {
-			register_setting( 'idl_settings', $option, [ 'sanitize_callback' => $sanitize ] );
+			register_setting( 'idl_settings', $option, array( 'sanitize_callback' => $sanitize ) );
 		}
 	}
 

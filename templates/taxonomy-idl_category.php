@@ -10,11 +10,11 @@ get_header();
 $settings    = idl_get_settings();
 $queried     = get_queried_object();
 $child_terms = get_terms(
-	[
+	array(
 		'taxonomy'   => 'idl_category',
 		'parent'     => $queried->term_id,
 		'hide_empty' => false,
-	]
+	)
 );
 ?>
 <div class="idl-category-archive">

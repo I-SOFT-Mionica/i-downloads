@@ -20,12 +20,12 @@ $mail_subject = sprintf(
 	$post_title,
 	$post_id
 );
-$mail_body    = sprintf(
+$mail_body = sprintf(
 	/* translators: %s: post title */
 	__( "Hello,\n\nI was trying to download a file from \"%s\" but it appears to be temporarily unavailable. I wanted to let you know so it can be restored.\n\nThank you!", 'i-downloads' ),
 	$post_title
 );
-$mailto       = 'mailto:' . rawurlencode( $admin_email )
+$mailto = 'mailto:' . rawurlencode( $admin_email )
 	. '?subject=' . rawurlencode( $mail_subject )
 	. '&body=' . rawurlencode( $mail_body );
 

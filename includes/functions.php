@@ -30,12 +30,12 @@ function idl_create_draft_download( array $args ): int|false {
 	}
 
 	$post_id = wp_insert_post(
-		[
+		array(
 			'post_title'   => $title,
 			'post_status'  => 'draft',
 			'post_type'    => 'idl',
 			'post_content' => wp_kses_post( $args['description'] ?? '' ),
-		]
+		)
 	);
 
 	if ( is_wp_error( $post_id ) ) {
@@ -65,7 +65,7 @@ function idl_get_settings(): array {
 	if ( null !== $cached ) {
 		return $cached;
 	}
-	$cached = [
+	$cached = array(
 		'default_access_role'      => get_option( 'idl_default_access_role', 'public' ),
 		'enable_counting'          => (bool) get_option( 'idl_enable_counting', true ),
 		'enable_logging'           => (bool) get_option( 'idl_enable_logging', true ),
@@ -92,7 +92,7 @@ function idl_get_settings(): array {
 		'category_slug'            => get_option( 'idl_category_slug', 'download-category' ),
 		'tag_slug'                 => get_option( 'idl_tag_slug', 'download-tag' ),
 		'delete_data_on_uninstall' => (bool) get_option( 'idl_delete_data_on_uninstall', false ),
-	];
+	);
 	return $cached;
 }
 
@@ -103,12 +103,12 @@ function idl_get_settings(): array {
  * @param string $type     'info' | 'success' | 'warning' | 'error'
  */
 function idl_notify_admin( string $message, string $type = 'info' ): void {
-	$notices   = get_option( 'idl_admin_notices', [] );
-	$notices[] = [
+	$notices   = get_option( 'idl_admin_notices', array() );
+	$notices[] = array(
 		'message' => $message,
-		'type'    => in_array( $type, [ 'info', 'success', 'warning', 'error' ], true ) ? $type : 'info',
+		'type'    => in_array( $type, array( 'info', 'success', 'warning', 'error' ), true ) ? $type : 'info',
 		'time'    => time(),
-	];
+	);
 	update_option( 'idl_admin_notices', $notices );
 }
 
@@ -119,7 +119,7 @@ function idl_notify_admin( string $message, string $type = 'info' ): void {
  * @param array<string,scalar> $atts
  */
 function idl_atts_to_string( array $atts ): string {
-	$parts = [];
+	$parts = array();
 	foreach ( $atts as $key => $value ) {
 		if ( '' === $value || null === $value ) {
 			continue;
@@ -149,7 +149,7 @@ function idl_files_dir(): string {
  * e.g. "skupstina-opstine/saziv-2025-2029/iv-sednica"
  */
 function idl_category_folder_path( int $term_id ): string {
-	$parts = [];
+	$parts = array();
 	$id    = $term_id;
 	while ( $id ) {
 		$term = get_term( $id, 'idl_category' );
@@ -202,7 +202,7 @@ function idl_sanitize_filename( string $original_name ): array {
 	// 3. Extension allow-list
 	$allowed = idl_get_settings()['allowed_extensions'];
 	if ( ! empty( $allowed ) && ! in_array( $ext, $allowed, true ) ) {
-		return [
+		return array(
 			'slug'           => '',
 			'ext'            => $ext,
 			'original_title' => $original_stem,
@@ -212,7 +212,7 @@ function idl_sanitize_filename( string $original_name ): array {
 				$ext,
 				implode( ', ', array_map( fn( $e ) => ".{$e}", $allowed ) )
 			),
-		];
+		);
 	}
 
 	// 4–6. Transliterate + diacritics + slugify
@@ -228,7 +228,7 @@ function idl_sanitize_filename( string $original_name ): array {
 
 	// 7. Length check (stem only)
 	if ( mb_strlen( $slug_stem ) > 80 ) {
-		return [
+		return array(
 			'slug'           => '',
 			'ext'            => $ext,
 			'original_title' => $original_stem,
@@ -237,15 +237,15 @@ function idl_sanitize_filename( string $original_name ): array {
 				__( 'Filename is too long (%d characters after sanitization). Please shorten it to 80 characters or fewer before uploading.', 'i-downloads' ),
 				mb_strlen( $slug_stem )
 			),
-		];
+		);
 	}
 
-	return [
+	return array(
 		'slug'           => $ext ? "{$slug_stem}.{$ext}" : $slug_stem,
 		'ext'            => $ext,
 		'original_title' => $original_stem,
 		'error'          => null,
-	];
+	);
 }
 
 /**
@@ -282,7 +282,7 @@ function idl_filename_collision( string $slug, int $category_id ): bool {
 function idl_cyrillic_to_latin( string $text ): string {
 	static $map = null;
 	if ( null === $map ) {
-		$map = [
+		$map = array(
 			// Digraphs — uppercase
 			'Љ' => 'Lj',
 			'Њ' => 'Nj',
@@ -347,7 +347,7 @@ function idl_cyrillic_to_latin( string $text ): string {
 			'ц' => 'c',
 			'ч' => 'č',
 			'ш' => 'š',
-		];
+		);
 	}
 	return strtr( $text, $map );
 }
@@ -361,7 +361,7 @@ function idl_cyrillic_to_latin( string $text ): string {
 function idl_latin_to_cyrillic( string $text ): string {
 	static $map = null;
 	if ( null === $map ) {
-		$map = [
+		$map = array(
 			// Digraphs — uppercase (longest first so strtr matches before singles)
 			'Lj' => 'Љ',
 			'LJ' => 'Љ',
@@ -432,7 +432,7 @@ function idl_latin_to_cyrillic( string $text ): string {
 			'c'  => 'ц',
 			'č'  => 'ч',
 			'š'  => 'ш',
-		];
+		);
 	}
 	return strtr( $text, $map );
 }
@@ -458,7 +458,7 @@ function idl_autofill_title( string $original_stem ): string {
  * Map a file extension to a CSS icon class used by the download card.
  */
 function idl_mime_icon_class( string $ext ): string {
-	$map = [
+	$map = array(
 		'pdf'  => 'pdf',
 		'doc'  => 'doc',
 		'docx' => 'doc',
@@ -479,7 +479,7 @@ function idl_mime_icon_class( string $ext ): string {
 		'mov'  => 'vid',
 		'mp3'  => 'aud',
 		'wav'  => 'aud',
-	];
+	);
 	return $map[ strtolower( $ext ) ] ?? 'file';
 }
 
@@ -506,7 +506,7 @@ function idl_get_stats_overview(): array {
 	global $wpdb;
 
 	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Aggregate dashboard query; result cached as 'idl_stats_overview' transient for 5 minutes (acceptable freshness for stats).
-	$data = [
+	$data = array(
 		'total_downloads'   => (int) $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'idl' AND post_status = 'publish'"
 		),
@@ -527,7 +527,7 @@ function idl_get_stats_overview(): array {
 			  GROUP BY p.ID, p.post_title
 			  ORDER BY total_count DESC
 			  LIMIT 10"
-		) ?: [],
+		) ?: array(),
 		'top_30d'           => $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT l.download_id, p.post_title, COUNT(*) AS count
@@ -539,7 +539,7 @@ function idl_get_stats_overview(): array {
 				  LIMIT 10",
 				30
 			)
-		) ?: [],
+		) ?: array(),
 		'daily_30d'         => $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT DATE(downloaded_at) AS day, COUNT(*) AS count
@@ -549,8 +549,8 @@ function idl_get_stats_overview(): array {
 				  ORDER BY day ASC",
 				30
 			)
-		) ?: [],
-	];
+		) ?: array(),
+	);
 	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 
 	set_transient( 'idl_stats_overview', $data, 5 * MINUTE_IN_SECONDS );
@@ -562,10 +562,10 @@ function idl_get_stats_overview(): array {
  */
 function idl_get_download_url( int $file_id ): string {
 	return add_query_arg(
-		[
+		array(
 			'idl_download' => $file_id,
 			'nonce'        => wp_create_nonce( 'idl_download_' . $file_id ),
-		],
+		),
 		home_url( '/' )
 	);
 }

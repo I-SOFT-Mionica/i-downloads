@@ -4,11 +4,11 @@ defined( 'ABSPATH' ) || exit;
 class IDL_Meta_Fields {
 
 	public function register_hooks(): void {
-		add_action( 'init', [ $this, 'register' ] );
+		add_action( 'init', array( $this, 'register' ) );
 	}
 
 	public function register(): void {
-		$fields = [
+		$fields = array(
 			'_idl_version'        => 'string',
 			'_idl_changelog'      => 'string',
 			'_idl_license_id'     => 'integer',
@@ -22,18 +22,18 @@ class IDL_Meta_Fields {
 			'_idl_is_hot'         => 'boolean',
 			'_idl_featured'       => 'boolean',
 			'_idl_external_only'  => 'boolean',
-		];
+		);
 
 		foreach ( $fields as $key => $type ) {
 			register_post_meta(
 				'idl',
 				$key,
-				[
+				array(
 					'type'          => $type,
 					'single'        => true,
 					'show_in_rest'  => true,
 					'auth_callback' => fn() => current_user_can( 'idl_edit_own_downloads' ),
-				]
+				)
 			);
 		}
 	}

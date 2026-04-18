@@ -14,11 +14,11 @@ class IDL_Tinymce {
 		if ( ! is_admin() ) {
 			return;
 		}
-		add_filter( 'mce_external_plugins', [ $this, 'add_plugin' ] );
-		add_filter( 'mce_buttons', [ $this, 'add_button' ] );
-		add_action( 'admin_footer', [ $this, 'render_modal' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
-		add_action( 'wp_ajax_idl_tmce_search', [ $this, 'ajax_search' ] );
+		add_filter( 'mce_external_plugins', array( $this, 'add_plugin' ) );
+		add_filter( 'mce_buttons', array( $this, 'add_button' ) );
+		add_action( 'admin_footer', array( $this, 'render_modal' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'wp_ajax_idl_tmce_search', array( $this, 'ajax_search' ) );
 	}
 
 	public function add_plugin( array $plugins ): array {
@@ -34,13 +34,13 @@ class IDL_Tinymce {
 	public function enqueue_assets(): void {
 		$screen = get_current_screen();
 		// Load only on post-editing screens.
-		if ( ! $screen || ! in_array( $screen->base, [ 'post', 'page' ], true ) ) {
+		if ( ! $screen || ! in_array( $screen->base, array( 'post', 'page' ), true ) ) {
 			return;
 		}
 		wp_enqueue_style(
 			'idl-tinymce-modal',
 			IDL_PLUGIN_URL . 'admin/css/tinymce-modal.css',
-			[],
+			array(),
 			IDL_VERSION
 		);
 	}
@@ -51,20 +51,20 @@ class IDL_Tinymce {
 	 */
 	public function render_modal(): void {
 		$screen = get_current_screen();
-		if ( ! $screen || ! in_array( $screen->base, [ 'post', 'page' ], true ) ) {
+		if ( ! $screen || ! in_array( $screen->base, array( 'post', 'page' ), true ) ) {
 			return;
 		}
 
 		$categories = get_terms(
-			[
+			array(
 				'taxonomy'   => 'idl_category',
 				'hide_empty' => false,
 				'orderby'    => 'name',
 				'fields'     => 'id=>name',
-			]
+			)
 		);
 		if ( is_wp_error( $categories ) ) {
-			$categories = [];
+			$categories = array();
 		}
 		?>
 		<div id="idl-tmce-modal" class="idl-tmce-modal" hidden>
@@ -135,12 +135,12 @@ class IDL_Tinymce {
 		$search   = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
 		$category = isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0;
 
-		$args = [
+		$args = array(
 			'post_type'      => 'idl',
 			'post_status'    => 'publish',
 			'posts_per_page' => 30,
 			'no_found_rows'  => true,
-		];
+		);
 
 		if ( $search ) {
 			$args['s'] = $search;
@@ -151,25 +151,25 @@ class IDL_Tinymce {
 
 		if ( $category > 0 ) {
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Required for category filtering; term_relationships index covers this access pattern.
-			$args['tax_query'] = [
-				[
+			$args['tax_query'] = array(
+				array(
 					'taxonomy' => 'idl_category',
 					'field'    => 'term_id',
 					'terms'    => $category,
-				],
-			];
+				),
+			);
 		}
 
 		$posts = get_posts( $args );
 
 		if ( empty( $posts ) ) {
-			wp_send_json_success( [ 'html' => '<p class="idl-tmce-modal__empty">' . esc_html__( 'No downloads found.', 'i-downloads' ) . '</p>' ] );
+			wp_send_json_success( array( 'html' => '<p class="idl-tmce-modal__empty">' . esc_html__( 'No downloads found.', 'i-downloads' ) . '</p>' ) );
 		}
 
 		ob_start();
 		echo '<ul class="idl-tmce-modal__list">';
 		foreach ( $posts as $post ) {
-			$cats = wp_get_post_terms( $post->ID, 'idl_category', [ 'fields' => 'names' ] );
+			$cats = wp_get_post_terms( $post->ID, 'idl_category', array( 'fields' => 'names' ) );
 			$cat  = ! is_wp_error( $cats ) && ! empty( $cats ) ? $cats[0] : '';
 			echo '<li>';
 			echo '<button type="button" class="idl-tmce-modal__item" data-id="' . esc_attr( $post->ID ) . '" data-title="' . esc_attr( $post->post_title ) . '">';
@@ -184,6 +184,6 @@ class IDL_Tinymce {
 		echo '</ul>';
 
 		$html = ob_get_clean();
-		wp_send_json_success( [ 'html' => $html ] );
+		wp_send_json_success( array( 'html' => $html ) );
 	}
 }

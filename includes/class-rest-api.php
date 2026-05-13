@@ -94,7 +94,7 @@ class IDL_Rest_Api {
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_stats_overview' ),
-				'permission_callback' => array( $this, 'editor_permission' ),
+				'permission_callback' => array( $this, 'logs_permission' ),
 			)
 		);
 
@@ -105,7 +105,7 @@ class IDL_Rest_Api {
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_logs' ),
-				'permission_callback' => array( $this, 'editor_permission' ),
+				'permission_callback' => array( $this, 'logs_permission' ),
 				'args'                => array(
 					'per_page'    => array(
 						'default'           => 25,
@@ -133,6 +133,14 @@ class IDL_Rest_Api {
 	 */
 	public function editor_permission(): bool {
 		return current_user_can( 'edit_posts' );
+	}
+
+	/**
+	 * Require the audit-log viewing capability — used for /stats/overview and
+	 * /logs which expose download history (who downloaded what, when, from where).
+	 */
+	public function logs_permission(): bool {
+		return current_user_can( 'idl_view_logs' );
 	}
 
 	// -------------------------------------------------------------------------

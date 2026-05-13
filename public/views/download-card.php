@@ -12,13 +12,13 @@ defined( 'ABSPATH' ) || exit;
 
 $access        = new IDL_Access_Control();
 $can_access    = $access->can_access_download( $post->ID );
-$files         = new IDL_File_Manager()->get_files( $post->ID );
+$files         = ( new IDL_File_Manager() )->get_files( $post->ID );
 $require_agree = (bool) get_post_meta( $post->ID, '_idl_require_agree', true );
 $access_role   = get_post_meta( $post->ID, '_idl_access_role', true ) ?: 'public';
 // HOT = set by nightly cron at 01:00 (top 10 downloads last 7 days), stored in post meta.
 $is_hot     = (bool) get_post_meta( $post->ID, '_idl_is_hot', true );
 $license_id = (int) get_post_meta( $post->ID, '_idl_license_id', true );
-$license    = ( $require_agree && $license_id ) ? new IDL_License_Manager()->get( $license_id ) : null;
+$license    = ( $require_agree && $license_id ) ? ( new IDL_License_Manager() )->get( $license_id ) : null;
 $agree_text = $license ? wp_kses_post( $license->full_text ) : wp_kses_post( (string) get_post_meta( $post->ID, '_idl_agree_text', true ) );
 $btn_text   = $settings['default_button_text'] ?: __( 'Download', 'i-downloads' );
 

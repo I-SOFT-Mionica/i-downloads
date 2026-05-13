@@ -3,7 +3,7 @@
  * Plugin Name: i-Downloads
  * Plugin URI:  https://isoft.rs/i-downloads
  * Description: Hierarchical file download manager — categories, multi-file entries, secure download handler, audit logging, and role-based access control.
- * Version:     0.6.0
+ * Version:     0.6.1
  * Author:      I-SOFT Mionica
  * Author URI:  https://isoft.rs
  * License:     GPL v2 or later
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const IDL_VERSION = '0.6.0';
+const IDL_VERSION = '0.6.1';
 define( 'IDL_PLUGIN_FILE', __FILE__ );
 define( 'IDL_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'IDL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -67,21 +67,21 @@ add_action(
 		// Translations for wp.org-hosted plugins are auto-loaded by WordPress since 4.6.
 
 		// Core registrations
-		new IDL_Post_Type()->register_hooks();
-		new IDL_Taxonomy()->register_hooks();
-		new IDL_Meta_Fields()->register_hooks();
+		( new IDL_Post_Type() )->register_hooks();
+		( new IDL_Taxonomy() )->register_hooks();
+		( new IDL_Meta_Fields() )->register_hooks();
 
 		// Extension API — fires idl_extensions_init so Sentinel/Orbit can register
-		new IDL_Extension_Api()->register_hooks();
+		( new IDL_Extension_Api() )->register_hooks();
 
 		// Download routing (frontend)
-		new IDL_Download_Handler()->register_hooks();
+		( new IDL_Download_Handler() )->register_hooks();
 
 		// Access control — query-level RBAC filtering on frontend.
-		new IDL_Access_Control()->register_hooks();
+		( new IDL_Access_Control() )->register_hooks();
 
 		// File integrity — serve-time detection + daily cron.
-		new IDL_File_Integrity()->register_hooks();
+		( new IDL_File_Integrity() )->register_hooks();
 
 		// Template hierarchy — load plugin templates for CPT/taxonomies (classic themes only).
 		// Single downloads are handled via the_content filter in IDL_Post_Type for all themes.
@@ -122,35 +122,35 @@ add_action(
 		);
 
 		// Category folder lifecycle (create / rename / warn on delete)
-		new IDL_Category_Folders()->register_hooks();
+		( new IDL_Category_Folders() )->register_hooks();
 
 		// Per-user write-side category ACL.
-		new IDL_Category_ACL()->register_hooks();
+		( new IDL_Category_ACL() )->register_hooks();
 
 		// Shortcodes (registered on all requests for REST/preview compatibility)
-		new IDL_Shortcodes()->register_hooks();
+		( new IDL_Shortcodes() )->register_hooks();
 
 		// REST API (needed outside admin too)
-		new IDL_Rest_Api()->register_hooks();
+		( new IDL_Rest_Api() )->register_hooks();
 
 		// Gutenberg blocks
-		new IDL_Blocks()->register_hooks();
+		( new IDL_Blocks() )->register_hooks();
 
 		// CSV / JSON export + log purge (admin-post.php actions)
-		new IDL_Export()->register_hooks();
+		( new IDL_Export() )->register_hooks();
 
 		// Scheduled tasks (HOT recalculation, log purge)
-		new IDL_Cron()->register_hooks();
+		( new IDL_Cron() )->register_hooks();
 
 		if ( is_admin() ) {
-			new IDL_Admin_Meta_Boxes()->register_hooks();
-			new IDL_Admin_Columns()->register_hooks();
-			new IDL_Settings()->register_hooks();
-			new IDL_Broken_Links_Ajax()->register_hooks();
-			new IDL_License_Manager()->register_hooks();
-			new IDL_Pdf_Thumbnail()->register_hooks();
-			new IDL_Tinymce()->register_hooks();
-			new IDL_Demo_Content()->register_hooks();
+			( new IDL_Admin_Meta_Boxes() )->register_hooks();
+			( new IDL_Admin_Columns() )->register_hooks();
+			( new IDL_Settings() )->register_hooks();
+			( new IDL_Broken_Links_Ajax() )->register_hooks();
+			( new IDL_License_Manager() )->register_hooks();
+			( new IDL_Pdf_Thumbnail() )->register_hooks();
+			( new IDL_Tinymce() )->register_hooks();
+			( new IDL_Demo_Content() )->register_hooks();
 		}
 	}
 );

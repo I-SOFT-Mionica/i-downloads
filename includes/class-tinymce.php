@@ -43,6 +43,26 @@ class IDL_Tinymce {
 			array(),
 			IDL_VERSION
 		);
+
+		// Data-only script handle: src=false tells WP this is a placeholder we
+		// only use to attach wp_localize_script() data — no JS file fetched.
+		// The TinyMCE plugin (loaded via mce_external_plugins) reads window.IDLTmce
+		// at init time.
+		wp_register_script( 'idl-tinymce-config', false, array(), IDL_VERSION, true );
+		wp_enqueue_script( 'idl-tinymce-config' );
+		wp_localize_script(
+			'idl-tinymce-config',
+			'IDLTmce',
+			array(
+				'nonce'   => wp_create_nonce( 'idl_tmce_search' ),
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'i18n'    => array(
+					'insertDownload' => __( 'Insert Download [iD]', 'i-downloads' ),
+					'loading'        => __( 'Loading…', 'i-downloads' ),
+					'loadError'      => __( 'Error loading results.', 'i-downloads' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -108,17 +128,6 @@ class IDL_Tinymce {
 
 			</div>
 		</div>
-		<script>
-		var IDLTmce = {
-			nonce: <?php echo wp_json_encode( wp_create_nonce( 'idl_tmce_search' ) ); ?>,
-			ajaxUrl: <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>,
-			i18n: {
-				insertDownload: <?php echo wp_json_encode( __( 'Insert Download [iD]', 'i-downloads' ) ); ?>,
-				loading:        <?php echo wp_json_encode( __( 'Loading…', 'i-downloads' ) ); ?>,
-				loadError:      <?php echo wp_json_encode( __( 'Error loading results.', 'i-downloads' ) ); ?>
-			}
-		};
-		</script>
 		<?php
 	}
 

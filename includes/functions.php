@@ -558,6 +558,63 @@ function idl_get_stats_overview(): array {
 }
 
 /**
+ * KSES allowlist for HTML emitted by our shortcodes / block render callbacks.
+ * Built on top of wp_kses_allowed_html('post') with the extra attributes our
+ * card / list / grid templates use (data-*, hidden, role, aria-*).
+ *
+ * @return array<string,array<string,bool>>
+ */
+function idl_allowed_html(): array {
+	static $allowed = null;
+	if ( null !== $allowed ) {
+		return $allowed;
+	}
+
+	$allowed = wp_kses_allowed_html( 'post' );
+
+	$extra_attrs = array(
+		'class'              => true,
+		'id'                 => true,
+		'role'               => true,
+		'hidden'             => true,
+		'aria-hidden'        => true,
+		'aria-label'         => true,
+		'aria-modal'         => true,
+		'aria-disabled'      => true,
+		'data-id'            => true,
+		'data-title'         => true,
+		'data-agree-content' => true,
+		'data-agree-title'   => true,
+	);
+
+	foreach ( array( 'a', 'article', 'aside', 'button', 'div', 'figure', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'input', 'label', 'li', 'nav', 'ol', 'p', 'section', 'select', 'span', 'svg', 'ul' ) as $tag ) {
+		if ( ! isset( $allowed[ $tag ] ) ) {
+			$allowed[ $tag ] = array();
+		}
+		$allowed[ $tag ] = array_merge( $allowed[ $tag ], $extra_attrs );
+	}
+
+	// Inputs we use for filter/search bars.
+	$input_attrs  = array(
+		'type'         => true,
+		'name'         => true,
+		'value'        => true,
+		'placeholder'  => true,
+		'autocomplete' => true,
+	);
+	$option_attrs = array(
+		'value'    => true,
+		'selected' => true,
+	);
+
+	$allowed['input']  = array_merge( $allowed['input'] ?? array(), $input_attrs );
+	$allowed['select'] = $allowed['select'] ?? array();
+	$allowed['option'] = array_merge( $allowed['option'] ?? array(), $option_attrs );
+
+	return $allowed;
+}
+
+/**
  * Build a secure, nonce-protected download URL for a file.
  */
 function idl_get_download_url( int $file_id ): string {

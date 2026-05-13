@@ -28,10 +28,6 @@ class IDL_Shortcodes {
 			array(),
 			IDL_VERSION
 		);
-		$custom_css = get_option( 'idl_custom_css', '' );
-		if ( $custom_css ) {
-			wp_add_inline_style( 'idl-public', wp_strip_all_tags( $custom_css ) );
-		}
 		wp_enqueue_script(
 			'idl-public',
 			IDL_PLUGIN_URL . 'public/js/public-script.js',

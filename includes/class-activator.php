@@ -175,6 +175,10 @@ HTACCESS;
 		delete_option( 'idl_storage_mode' );
 		delete_option( 'idl_custom_folder' );
 
+		// Removed in 0.6.1: arbitrary CSS injection is disallowed by the WP.org
+		// plugin guidelines.
+		delete_option( 'idl_custom_css' );
+
 		// Obsolete per-download storage-mode post meta.
 		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = '_idl_storage_mode'" );
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange

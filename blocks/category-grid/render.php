@@ -11,4 +11,4 @@ $atts = array(
 	'show_description' => ! empty( $attributes['showDescription'] ) ? '1' : '0',
 );
 
-echo do_shortcode( '[idl_categories' . idl_atts_to_string( $atts ) . ']' ); // phpcs:ignore WordPress.Security.EscapeOutput
+echo wp_kses( do_shortcode( '[idl_categories' . idl_atts_to_string( $atts ) . ']' ), idl_allowed_html() );

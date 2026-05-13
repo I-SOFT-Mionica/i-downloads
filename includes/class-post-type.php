@@ -119,7 +119,7 @@ class IDL_Post_Type {
 		}
 		$appended[ $post->ID ] = true;
 
-		$files    = new IDL_File_Manager()->get_files( $post->ID );
+		$files    = ( new IDL_File_Manager() )->get_files( $post->ID );
 		$settings = idl_get_settings();
 
 		ob_start();

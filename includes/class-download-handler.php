@@ -83,7 +83,7 @@ class IDL_Download_Handler {
 			if ( ! $target ) {
 				wp_die( esc_html__( 'This external link is invalid.', 'i-downloads' ), 400 );
 			}
-			$log_id = new IDL_Download_Logger()->log( $download_id, $file_id );
+			$log_id = ( new IDL_Download_Logger() )->log( $download_id, $file_id );
 			do_action( 'idl_after_download', $log_id );
 			// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- External-link downloads point off-site; wp_safe_redirect() rejects them. $target is validated via esc_url_raw() above. See changelog 0.4.3.
 			wp_redirect( $target );
@@ -102,7 +102,7 @@ class IDL_Download_Handler {
 		}
 
 		$file_id = (int) $file->id;
-		$log_id  = new IDL_Download_Logger()->log( $download_id, $file_id );
+		$log_id  = ( new IDL_Download_Logger() )->log( $download_id, $file_id );
 		if ( idl_get_settings()['enable_counting'] ) {
 			$manager->increment_count( $file_id, $download_id );
 		}

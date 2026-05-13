@@ -22,5 +22,8 @@ $atts = array(
 	'show_search'           => ! empty( $attributes['showSearch'] ) ? '1' : '0',
 );
 
-// Reuse shortcode output — single source of truth
-echo do_shortcode( '[idl_list' . idl_atts_to_string( $atts ) . ']' ); // phpcs:ignore WordPress.Security.EscapeOutput
+// Reuse shortcode output — single source of truth.
+// HTML is built by our own shortcode handler (each variable is escaped at the
+// template level); wp_kses() here is the explicit boundary escape the WP.org
+// reviewers expect at block-callback level.
+echo wp_kses( do_shortcode( '[idl_list' . idl_atts_to_string( $atts ) . ']' ), idl_allowed_html() );

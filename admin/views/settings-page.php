@@ -207,10 +207,6 @@
 				<td><input type="text" name="idl_tag_slug" id="idl-tag-slug" value="<?php echo esc_attr( get_option( 'idl_tag_slug', 'download-tag' ) ); ?>" class="regular-text" /></td>
 			</tr>
 			<tr>
-				<th><label for="idl-custom-css"><?php esc_html_e( 'Custom CSS', 'i-downloads' ); ?></label></th>
-				<td><textarea name="idl_custom_css" id="idl-custom-css" class="widefat code" rows="8"><?php echo esc_textarea( get_option( 'idl_custom_css', '' ) ); ?></textarea></td>
-			</tr>
-			<tr>
 				<th><?php esc_html_e( 'Flush Rewrite Rules', 'i-downloads' ); ?></th>
 				<td>
 					<button type="submit" name="idl_flush_rewrite" value="1" class="button"><?php esc_html_e( 'Flush Now', 'i-downloads' ); ?></button>

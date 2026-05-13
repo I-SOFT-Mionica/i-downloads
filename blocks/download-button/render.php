@@ -24,4 +24,4 @@ $settings = idl_get_settings();
 
 ob_start();
 require IDL_PLUGIN_DIR . 'public/views/download-card.php';
-echo ob_get_clean(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+echo wp_kses( ob_get_clean(), idl_allowed_html() );

@@ -14,7 +14,7 @@ class IDL_Pdf_Thumbnail {
 			return;
 		}
 
-		$file = new IDL_File_Manager()->get_file( $file_id );
+		$file = ( new IDL_File_Manager() )->get_file( $file_id );
 		if ( ! $file || 'application/pdf' !== $file->file_mime || empty( $file->file_path ) ) {
 			return;
 		}

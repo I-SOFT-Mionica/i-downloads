@@ -49,7 +49,7 @@ class IDL_Broken_Links_Ajax {
 	}
 
 	private function get_file_or_die( int $file_id ): object {
-		$file = new IDL_File_Manager()->get_file( $file_id );
+		$file = ( new IDL_File_Manager() )->get_file( $file_id );
 		if ( ! $file ) {
 			wp_send_json_error( array( 'message' => __( 'File record not found.', 'i-downloads' ) ), 404 );
 		}

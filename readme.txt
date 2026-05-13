@@ -1,10 +1,10 @@
 === i-Downloads ===
-Contributors: isoftmionica
+Contributors: chillic, isoftmionica
 Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.6.0
+Stable tag: 0.6.1
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Hierarchical file download manager. Category-as-folder storage, multi-file entri
 
 == Description ==
 
-**i-Downloads** is a modular download manager modelled on Joomla's jDownloads, rebuilt for modern WordPress. It's designed for organizations with many documents, a structured category tree, and editorial teams that need per-department write permissions.
+**i-Downloads** is a modular download manager built for modern WordPress, designed for organizations with many documents, a structured category tree, and editorial teams that need per-department write permissions.
 
 = Key features =
 
@@ -27,7 +27,7 @@ Hierarchical file download manager. Category-as-folder storage, multi-file entri
 * **Classic editor shortcodes.** `[idl_list]`, `[idl_download id="123"]`, `[idl_categories]`, `[idl_search]`.
 * **Cyrillic filename and slug handling.** Automatic Serbian Cyrillic → Latin transliteration for category slugs, post slugs, and uploaded filenames (configurable extension allow-list, double-extension strip, 80-char cap).
 * **License management.** Assign licenses per download, with optional "require agreement before download" modal.
-* **PDF thumbnails.** Auto-generate post thumbnails from the first page of a PDF (Imagick or Ghostscript).
+* **PDF thumbnails.** Auto-generate post thumbnails from the first page of a PDF (requires the Imagick PHP extension).
 * **REST API.** Every taxonomy and the CPT are exposed to `wp/v2` with custom endpoints for listing and searching.
 * **Statistics dashboard.** Per-file and per-download counts, with a nightly HOT recalculation of the top downloads.
 
@@ -56,7 +56,7 @@ This design exists so automation tools can sync files in and out without having 
 * WordPress 6.6 or higher
 * MySQL 5.7+ or MariaDB 10.3+
 * Apache with `mod_rewrite` + `mod_authz_core` **or** Nginx (see Settings → Security for configuration snippets)
-* For PDF thumbnails: Imagick PHP extension **or** Ghostscript binary on `$PATH`
+* For PDF thumbnails: Imagick PHP extension
 
 == Frequently Asked Questions ==
 
@@ -97,6 +97,13 @@ Yes. The plugin detects FSE themes and injects the download card via `the_conten
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.6.1 =
+* **Removed Custom CSS textarea** from Settings → Advanced. Arbitrary CSS injection is disallowed by WordPress.org plugin guidelines. Existing `idl_custom_css` option rows are deleted on upgrade.
+* **REST hardening.** `/i-downloads/v1/stats/overview` and `/i-downloads/v1/logs` now require the `idl_view_logs` capability instead of the broader `edit_posts`.
+* **Block render escaping.** All three block render callbacks (Download List, Download Entry, Category Grid) now run their HTML through `wp_kses()` with a plugin-specific allowlist.
+* **Inline assets enqueued.** Moved the inline `<style>` block on Settings → Extensions into the admin stylesheet, and replaced the inline `<script>` config in the TinyMCE modal with `wp_localize_script()`.
+* **PHP 8.4 chained constructor calls** rewritten to `( new Class() )->method()` form across 14 sites in 9 files. Functionally identical; satisfies older static analyzers used in plugin review.
 
 = 0.6.0 =
 * **WPCS compliance.** Full WordPress Coding Standards pass — phpcbf auto-fixes plus manual remediation. Zero errors, zero warnings against `phpcs --standard=WordPress`.

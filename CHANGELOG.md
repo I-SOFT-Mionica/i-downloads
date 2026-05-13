@@ -2,6 +2,27 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.6.1] — 2026-05-13
+
+WordPress.org plugin review (round 1) fixes.
+
+### Removed
+- **Custom CSS feature.** `idl_custom_css` setting, the Advanced-tab textarea, the sanitization map entry, and the `wp_add_inline_style()` enqueue all gone. Reviewer flagged it as arbitrary code injection (Guideline 11 — no custom CSS/JS/PHP). Upgrade path: `IDL_Activator::drop_legacy_columns()` calls `delete_option( 'idl_custom_css' )` so existing rows are removed on activation. Uninstall already wildcards `idl_%`.
+
+### Changed
+- **REST permission tightening.** New `IDL_Rest_Api::logs_permission()` callback (`current_user_can( 'idl_view_logs' )`) replaces `editor_permission()` on `/stats/overview` and `/logs`. Both endpoints expose download history; the `idl_view_logs` cap is the same one used by the admin Logs screen.
+- **Block render output escaped.** New `idl_allowed_html()` helper in `includes/functions.php` returns a kses allowlist built on `wp_kses_allowed_html('post')` plus `data-*`, `hidden`, `role`, and `aria-*` attributes our card / list / grid templates use. The three block render files (`blocks/download-list/render.php`, `blocks/category-grid/render.php`, `blocks/download-button/render.php`) now wrap their `do_shortcode()` / `ob_get_clean()` output in `wp_kses( $output, idl_allowed_html() )` and drop the previous `phpcs:ignore`.
+- **Inline `<style>` moved to enqueued CSS.** `.idl-soon-badge` rules from `admin/views/extensions-tab.php` now live in `admin/css/admin-style.css` (already enqueued by the Settings page).
+- **Inline `<script>` replaced with `wp_localize_script`.** TinyMCE modal config (`IDLTmce` global) registered against a data-only script handle (`wp_register_script( 'idl-tinymce-config', false, ... )`) in `IDL_Tinymce::enqueue_assets()`. The TinyMCE plugin (`admin/js/tinymce-plugin.js`, loaded via `mce_external_plugins`) reads `window.IDLTmce` at init time exactly as before.
+- **PHP 8.4 chained-constructor syntax rewritten** (`new Class()->method()` → `( new Class() )->method()`) across 14 call sites in 9 files. Reviewer's static analyzer doesn't grok 8.4 syntax even though `Requires PHP: 8.4`. The parenthesized form is parser-compatible back to PHP 7.0 and behaves identically. Files: `i-downloads.php` (bootstrap block), `includes/class-post-type.php`, `includes/class-download-handler.php`, `includes/class-pdf-thumbnail.php`, `includes/class-broken-links-ajax.php`, `includes/class-admin-meta-boxes.php` (6 call sites in this one file alone), `public/views/download-card.php`.
+- **`readme.txt` cleanup.** `Contributors:` now `chillic, isoftmionica` (chillic is the WP.org owner account; isoftmionica is the same person under the I-SOFT enterprise). Description no longer references jDownloads by name (defuses the name-confusion concern flagged by the reviewer's AI).
+
+### Documented
+- **`wp_ajax_delete-tag` hook** in `IDL_Category_Folders::register_hooks()` now has an explanatory comment: `delete-tag` is WP core's own AJAX action name, not our prefix. The reviewer's tool flagged it as an unprefixed common-word hook (false positive).
+
+### Deferred
+- **Plugin name change.** Reviewer's AI flagged "i-Downloads" as not distinctive (single-letter prefix + generic word; pattern similar to jDownloads / JDownloader). We keep the slug for now and will argue with the human reviewer when it surfaces.
+
 ## [0.5.2] — 2026-04-18
 
 ### Added

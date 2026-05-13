@@ -149,7 +149,6 @@ class IDL_Settings {
 			'idl_allowed_extensions'       => 'sanitize_textarea_field',
 			'idl_cyrillic_titles'          => 'absint',
 			// Advanced
-			'idl_custom_css'               => 'wp_strip_all_tags',
 			'idl_archive_slug'             => 'sanitize_title',
 			'idl_category_slug'            => 'sanitize_title',
 			'idl_tag_slug'                 => 'sanitize_title',

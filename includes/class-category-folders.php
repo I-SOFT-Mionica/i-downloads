@@ -38,6 +38,9 @@ class IDL_Category_Folders {
 		add_action( 'edit_term', array( $this, 'before_edit' ), 10, 3 );
 		add_action( 'edited_idl_category', array( $this, 'on_edited' ), PHP_INT_MAX, 2 );
 		add_action( 'pre_delete_term', array( $this, 'on_pre_delete' ), 10, 2 );
+		// 'delete-tag' is WP core's own AJAX action for term deletion in the
+		// admin (not our prefix). We hook in at priority 0 to short-circuit the
+		// request when the category still has downloads attached.
 		add_action( 'wp_ajax_delete-tag', array( $this, 'ajax_guard_delete' ), 0 );
 
 		// Move files on disk when a download's category assignment changes.

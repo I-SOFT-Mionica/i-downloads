@@ -54,19 +54,4 @@
 			<p><a href="https://isoft.rs/orbit" target="_blank" rel="noopener" class="button" aria-disabled="true"><?php esc_html_e( 'Learn More', 'i-downloads' ); ?></a></p>
 		</div>
 	</div>
-	<style>
-		.idl-soon-badge {
-			display: inline-block;
-			margin-left: .5em;
-			padding: 2px 8px;
-			font-size: 11px;
-			font-weight: 600;
-			letter-spacing: .03em;
-			text-transform: uppercase;
-			background: #dba617;
-			color: #fff;
-			border-radius: 3px;
-			vertical-align: middle;
-		}
-	</style>
 </div>

@@ -595,21 +595,21 @@ function idl_allowed_html(): array {
 	}
 
 	// Inputs we use for filter/search bars.
-	$allowed['input'] = array_merge(
-		$allowed['input'] ?? array(),
-		array(
-			'type'        => true,
-			'name'        => true,
-			'value'       => true,
-			'placeholder' => true,
-			'autocomplete' => true,
-		)
+	$input_attrs = array(
+		'type'         => true,
+		'name'         => true,
+		'value'        => true,
+		'placeholder'  => true,
+		'autocomplete' => true,
 	);
-	$allowed['select'] = $allowed['select'] ?? array();
-	$allowed['option'] = $allowed['option'] ?? array(
+	$option_attrs = array(
 		'value'    => true,
 		'selected' => true,
 	);
+
+	$allowed['input']  = array_merge( $allowed['input'] ?? array(), $input_attrs );
+	$allowed['select'] = $allowed['select'] ?? array();
+	$allowed['option'] = array_merge( $allowed['option'] ?? array(), $option_attrs );
 
 	return $allowed;
 }

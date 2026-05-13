@@ -595,7 +595,7 @@ function idl_allowed_html(): array {
 	}
 
 	// Inputs we use for filter/search bars.
-	$input_attrs = array(
+	$input_attrs  = array(
 		'type'         => true,
 		'name'         => true,
 		'value'        => true,

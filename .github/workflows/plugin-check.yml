@@ -1,0 +1,29 @@
+name: Plugin Check
+
+# Runs the official WordPress Plugin Check (https://wordpress.org/plugins/plugin-check/)
+# — the same tool the WP.org plugin-review team runs against submissions.
+# Catches inline <script>/<style>, missing escapes, capability gaps, header
+# issues, readme.txt structural problems, and other compliance concerns.
+#
+# Severity policy: fail the job on ERRORS only for now. Once we're stable at
+# error-level, consider bumping to warnings via the `wp-plugin-check-args`
+# input below.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  plugin-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Plugin Check
+        uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: './i-downloads'
+          exclude-directories: 'vendor,node_modules,tests'

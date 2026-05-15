@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.7.0
+Stable tag: 0.7.1
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -147,6 +147,9 @@ For deeper changes (layout, spacing, typography), all public classes use the `.i
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.7.1 =
+* **Theming docs surfaced in admin.** The Display tab now includes a "Theming" section listing all 18 CSS variables, the public BEM class hierarchy, a copy-paste snippet, and a one-click link to Customizer → Additional CSS. Same content as the readme; previously only visible on the WordPress.org plugin page.
 
 = 0.7.0 =
 * **Theming via CSS custom properties.** Every color in the public stylesheet is now exposed as a `--idl-*` variable on `:root`. Override one variable in **Appearance → Customize → Additional CSS** to recolor any element — no selector knowledge needed. Replaces the removed Custom CSS feature with a WordPress-approved customization path.

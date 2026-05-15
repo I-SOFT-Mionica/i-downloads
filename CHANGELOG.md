@@ -2,6 +2,14 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.7.1] — 2026-05-16
+
+In-admin theming reference.
+
+### Added
+- **"Theming" section on the Display settings tab.** Mirrors the `Customizing appearance` block in `readme.txt` but rendered inside `wp-admin` so it's discoverable before WordPress.org approval (the readme block only renders nicely on the WP.org plugin page). Three collapsible `<details>` blocks: a copy-paste example (open by default), the full table of 18 `--idl-*` CSS variables with defaults and descriptions, and the public BEM class hierarchy. Plus a primary-button link that deep-links to `customize.php?autofocus[section]=custom_css`.
+- `.idl-theming-details`, `.idl-theming-snippet`, `.idl-theming-table` styles in `admin/css/admin-style.css` — minimal, scoped to this section.
+
 ## [0.7.0] — 2026-05-14
 
 Theming refactor — public stylesheet is now a public API. Replaces the removed Custom CSS textarea (0.6.1) with a WordPress-approved customization path: users override `--idl-*` CSS custom properties from `Appearance → Customize → Additional CSS`. No plugin code accepts user CSS.

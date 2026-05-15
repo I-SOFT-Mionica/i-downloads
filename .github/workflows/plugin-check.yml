@@ -88,15 +88,20 @@ jobs:
           wp-env run cli wp plugin activate i-downloads
 
       - name: Run Plugin Check
-        # Severity 7 = errors only (Plugin Check uses 1-10 scale; 7+ is ERROR).
-        # Job fails on any finding — CI blocks the merge if Plugin Check
-        # surfaces something. To temporarily ignore a specific code, add it to
-        # an --ignore-codes=foo,bar list rather than relaxing the severity.
+        # Maximum strictness:
+        #   --severity=1                surface everything from informational up
+        #   --categories=...            include security, performance, accessibility
+        #                               (default is only general+plugin_repo)
+        #   --include-experimental      enable experimental checks too
+        # Job fails on any finding. To allow a specific code, add it to
+        # --ignore-codes=foo,bar rather than relaxing the gate.
         run: |
           wp-env run cli wp plugin check i-downloads \
             --format=table \
             --exclude-directories=vendor,node_modules,tests \
-            --severity=7
+            --severity=1 \
+            --categories=general,plugin_repo,security,performance,accessibility \
+            --include-experimental
 
       - name: Stop wp-env
         if: always()

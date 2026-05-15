@@ -47,25 +47,42 @@ jobs:
       - name: Start wp-env
         run: wp-env start
 
+      - name: Stage plugin
+        # The repo IS the plugin (no nested subdirectory), so we have to stage
+        # a clean copy that excludes repo-management files (.git, .github,
+        # the .wp-env.json we wrote at workspace root, vendor, tests, etc.)
+        # before injecting it into the container.
+        run: |
+          mkdir -p /tmp/staging/i-downloads
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.wp-env.json' \
+            --exclude='vendor/' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            "${{ github.workspace }}/" /tmp/staging/i-downloads/
+          ls -la /tmp/staging/i-downloads/
+
       - name: Inject plugin via docker cp
         run: |
           set -x
 
-          # Find the WordPress container started by wp-env. Names follow the
-          # pattern wp-env-<project>-<hash>-wordpress-<n>.
-          CONTAINER=$(docker ps --filter "name=wp-env-.*-wordpress-1" --format "{{.Names}}" | head -1)
+          # wp-env starts BOTH a dev and a tests environment, each with its
+          # own wordpress container. We need the dev one because `wp-env run
+          # cli` defaults there. Filter by name and exclude '-tests-'.
+          CONTAINER=$(docker ps --format "{{.Names}}" \
+            | grep -E '^wp-env-.*-wordpress-1$' \
+            | grep -v -- '-tests-' \
+            | head -1)
           if [ -z "$CONTAINER" ]; then
-            echo "Could not find wp-env wordpress container. docker ps output:"
+            echo "Could not find wp-env dev wordpress container. docker ps output:"
             docker ps
             exit 1
           fi
           echo "Using container: $CONTAINER"
 
-          # Absolute workspace path so we don't depend on shell CWD.
-          SRC="${{ github.workspace }}/i-downloads"
-          ls -la "$SRC" >/dev/null
-
-          docker cp "$SRC" "$CONTAINER:/var/www/html/wp-content/plugins/"
+          docker cp /tmp/staging/i-downloads "$CONTAINER:/var/www/html/wp-content/plugins/"
 
       - name: Verify and activate plugin
         run: |

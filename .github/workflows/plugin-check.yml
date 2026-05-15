@@ -3,11 +3,14 @@ name: Plugin Check
 # Runs the official WordPress Plugin Check (https://wordpress.org/plugins/plugin-check/)
 # — the same tool the WP.org plugin-review team runs against submissions.
 #
-# We drive wp-env directly instead of using the wordpress/plugin-check-action
-# wrapper because that action installs the plugin via wp-env "mappings", which
-# silently fails to register the plugin when the source lives in a subdirectory
-# of the repo. The wp-env "plugins" array (used here) copies the directory into
-# wp-content/plugins/ and is the supported path for local plugin sources.
+# We drive wp-env directly because the wordpress/plugin-check-action wrapper
+# installs the plugin via wp-env "mappings", which silently fails when the
+# plugin source lives in a repo subdirectory.
+#
+# We also explicitly cp the plugin into wp-env's WordPress directory after
+# start because the wp-env "plugins" array entry for a local directory has
+# been intermittently flaky in CI (likely related to the deprecated
+# auto-tests-environment startup that emits a docker-compose error on start).
 
 on:
   push:
@@ -35,7 +38,6 @@ jobs:
           {
             "core": null,
             "plugins": [
-              "./i-downloads",
               "https://downloads.wordpress.org/plugin/plugin-check.zip"
             ]
           }
@@ -45,16 +47,25 @@ jobs:
       - name: Start wp-env
         run: wp-env start
 
-      - name: Verify plugin installed
+      - name: Inject plugin into wp-env
+        # Copy our plugin source directly into wp-env's host-side WordPress
+        # directory. wp-env mounts this into the container, so the plugin
+        # appears in wp-content/plugins/i-downloads/ immediately.
+        run: |
+          WP_ENV_PATH=$(wp-env install-path)
+          echo "wp-env install path: $WP_ENV_PATH"
+          cp -R ./i-downloads "$WP_ENV_PATH/WordPress/wp-content/plugins/"
+          ls -la "$WP_ENV_PATH/WordPress/wp-content/plugins/"
+
+      - name: Verify and activate plugin
         run: |
           wp-env run cli wp plugin list
           wp-env run cli wp plugin activate i-downloads
 
       - name: Run Plugin Check
-        # Severity gate: ERROR only for now. The `|| true` lets the output
-        # surface even when checks fail, so we see what's flagged on the first
-        # run. Remove `|| true` once we're consistently green and want CI to
-        # block on findings.
+        # Severity 7 = errors only (Plugin Check uses 1-10 scale; 7+ is ERROR).
+        # `|| true` keeps the output visible while we calibrate. Remove it once
+        # we're consistently green and want CI to block on findings.
         run: |
           wp-env run cli wp plugin check i-downloads \
             --format=table \
@@ -64,4 +75,4 @@ jobs:
 
       - name: Stop wp-env
         if: always()
-        run: wp-env stop
+        run: wp-env stop || true

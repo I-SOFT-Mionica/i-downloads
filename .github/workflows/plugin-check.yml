@@ -37,6 +37,7 @@ jobs:
           cat > .wp-env.json <<'EOF'
           {
             "core": null,
+            "phpVersion": "8.4",
             "plugins": [
               "https://downloads.wordpress.org/plugin/plugin-check.zip"
             ]

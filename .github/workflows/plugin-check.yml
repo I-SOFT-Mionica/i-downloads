@@ -7,10 +7,10 @@ name: Plugin Check
 # installs the plugin via wp-env "mappings", which silently fails when the
 # plugin source lives in a repo subdirectory.
 #
-# We also explicitly cp the plugin into wp-env's WordPress directory after
-# start because the wp-env "plugins" array entry for a local directory has
-# been intermittently flaky in CI (likely related to the deprecated
-# auto-tests-environment startup that emits a docker-compose error on start).
+# We also bypass wp-env's plugin install entirely and `docker cp` our plugin
+# straight into the running WordPress container. Both the "plugins" array
+# entry for a local directory AND the (non-existent) `wp-env install-path`
+# command have proven unreliable; docker cp removes all the abstractions.
 
 on:
   push:
@@ -47,15 +47,25 @@ jobs:
       - name: Start wp-env
         run: wp-env start
 
-      - name: Inject plugin into wp-env
-        # Copy our plugin source directly into wp-env's host-side WordPress
-        # directory. wp-env mounts this into the container, so the plugin
-        # appears in wp-content/plugins/i-downloads/ immediately.
+      - name: Inject plugin via docker cp
         run: |
-          WP_ENV_PATH=$(wp-env install-path)
-          echo "wp-env install path: $WP_ENV_PATH"
-          cp -R ./i-downloads "$WP_ENV_PATH/WordPress/wp-content/plugins/"
-          ls -la "$WP_ENV_PATH/WordPress/wp-content/plugins/"
+          set -x
+
+          # Find the WordPress container started by wp-env. Names follow the
+          # pattern wp-env-<project>-<hash>-wordpress-<n>.
+          CONTAINER=$(docker ps --filter "name=wp-env-.*-wordpress-1" --format "{{.Names}}" | head -1)
+          if [ -z "$CONTAINER" ]; then
+            echo "Could not find wp-env wordpress container. docker ps output:"
+            docker ps
+            exit 1
+          fi
+          echo "Using container: $CONTAINER"
+
+          # Absolute workspace path so we don't depend on shell CWD.
+          SRC="${{ github.workspace }}/i-downloads"
+          ls -la "$SRC" >/dev/null
+
+          docker cp "$SRC" "$CONTAINER:/var/www/html/wp-content/plugins/"
 
       - name: Verify and activate plugin
         run: |

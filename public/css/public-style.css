@@ -10,7 +10,42 @@
  * narrow sidebar, two-column layout, etc. — independent of viewport size.
  * Pixel values are reserved for: hairline borders, tap-target minimums,
  * and dashicon glyph sizing.
+ *
+ * Customization: every color in this file is exposed as a `--idl-*` CSS
+ * custom property on `:root`. Override from Appearance → Customize →
+ * Additional CSS — see readme.txt "Customizing appearance" for the full
+ * list. The download button intentionally has no `--idl-btn-*` vars so
+ * theme `wp-element-button` styling stays in control.
  */
+
+:root {
+	/* Surfaces */
+	--idl-card-bg:        #fff;
+	--idl-card-border:    #e5e5e5;
+	--idl-row-border:     #f0f0f0;
+	--idl-title-band-bg:  #f6f7f9;
+
+	/* Typography */
+	--idl-meta-color:     #666;
+	--idl-empty-color:    #888;
+
+	/* HOT badge */
+	--idl-badge-hot-bg:    #e74c3c;
+	--idl-badge-hot-color: #fff;
+
+	/* File-type colors — single source of truth for both list-mode tiles
+	 * (.idl-icon--*) and grid-mode badges (.idl-meta--type.idl-type--*). */
+	--idl-icon-color:    #fff;
+	--idl-icon-pdf-bg:   #c0392b;
+	--idl-icon-doc-bg:   #2980b9;
+	--idl-icon-xls-bg:   #27ae60;
+	--idl-icon-ppt-bg:   #e67e22;
+	--idl-icon-zip-bg:   #8e44ad;
+	--idl-icon-img-bg:   #16a085;
+	--idl-icon-vid-bg:   #2c3e50;
+	--idl-icon-aud-bg:   #d35400;
+	--idl-icon-file-bg:  #7f8c8d;
+}
 
 /* Establish the query container on the shortcode wrapper. Both the list/grid
  * shortcode and any direct .idl-grid render become query containers. */
@@ -41,7 +76,7 @@
 
 /* ── Download card — JDownloads-style (list mode) ────────────────────────── */
 .idl-download-card {
-	border-bottom: 1px solid #e5e5e5;
+	border-bottom: 1px solid var(--idl-card-border, #e5e5e5);
 	padding: .5em 0;
 }
 .idl-download-card + .idl-download-card {
@@ -57,10 +92,10 @@
 	align-items: center;
 	gap: .75em;
 	padding: .5em 0;
-	border-bottom: 1px solid #f0f0f0;
+	border-bottom: 1px solid var(--idl-row-border, #f0f0f0);
 }
 .idl-file-item:last-child { border-bottom: none; }
-.idl-file-item--empty { color: #888; font-style: italic; }
+.idl-file-item--empty { color: var(--idl-empty-color, #888); font-style: italic; }
 
 /* File type icon (list mode) */
 .idl-file-item__icon {
@@ -75,19 +110,19 @@
 	font-size: .625em;
 	font-weight: 700;
 	letter-spacing: .03em;
-	color: #fff;
-	background: #888;
+	color: var(--idl-icon-color, #fff);
+	background: var(--idl-icon-file-bg, #7f8c8d);
 	text-transform: uppercase;
 }
-.idl-icon--pdf  { background: #c0392b; }
-.idl-icon--doc  { background: #2980b9; }
-.idl-icon--xls  { background: #27ae60; }
-.idl-icon--ppt  { background: #e67e22; }
-.idl-icon--zip  { background: #8e44ad; }
-.idl-icon--img  { background: #16a085; }
-.idl-icon--vid  { background: #2c3e50; }
-.idl-icon--aud  { background: #d35400; }
-.idl-icon--file { background: #7f8c8d; }
+.idl-icon--pdf  { background: var(--idl-icon-pdf-bg,  #c0392b); }
+.idl-icon--doc  { background: var(--idl-icon-doc-bg,  #2980b9); }
+.idl-icon--xls  { background: var(--idl-icon-xls-bg,  #27ae60); }
+.idl-icon--ppt  { background: var(--idl-icon-ppt-bg,  #e67e22); }
+.idl-icon--zip  { background: var(--idl-icon-zip-bg,  #8e44ad); }
+.idl-icon--img  { background: var(--idl-icon-img-bg,  #16a085); }
+.idl-icon--vid  { background: var(--idl-icon-vid-bg,  #2c3e50); }
+.idl-icon--aud  { background: var(--idl-icon-aud-bg,  #d35400); }
+.idl-icon--file { background: var(--idl-icon-file-bg, #7f8c8d); }
 
 /* Info column — grows */
 .idl-file-item__info { flex: 1 1 auto; min-width: 0; }
@@ -107,7 +142,7 @@
 	flex-wrap: wrap;
 	gap: .5em 1em;
 	font-size: .8em;
-	color: #666;
+	color: var(--idl-meta-color, #666);
 }
 .idl-file-item__meta .idl-meta {
 	display: inline-flex;
@@ -134,8 +169,8 @@
 	border-radius: 2px;
 	text-transform: uppercase;
 	letter-spacing: .05em;
-	background: #e74c3c;
-	color: #fff;
+	background: var(--idl-badge-hot-bg, #e74c3c);
+	color: var(--idl-badge-hot-color, #fff);
 	vertical-align: middle;
 	margin-left: .3em;
 }
@@ -194,12 +229,12 @@
  */
 .idl-grid .idl-download-card {
 	aspect-ratio: 1.5 / 2.7;
-	border: 1px solid #e5e5e5;
+	border: 1px solid var(--idl-card-border, #e5e5e5);
 	border-radius: 4px;
 	padding: 0;
 	margin: 0;
 	overflow: hidden;
-	background: #fff;
+	background: var(--idl-card-bg, #fff);
 	display: flex;
 	flex-direction: column;
 }
@@ -218,8 +253,8 @@
 	line-height: 1.3;
 	margin: 0;
 	padding: .8em 1em;
-	background: #f6f7f9;
-	border-bottom: 1px solid #e5e5e5;
+	background: var(--idl-title-band-bg, #f6f7f9);
+	border-bottom: 1px solid var(--idl-card-border, #e5e5e5);
 	display: -webkit-box;
 	-webkit-line-clamp: 3;
 	line-clamp: 3;
@@ -238,7 +273,7 @@
 	align-items: center;
 	gap: .75em;
 	padding: .75em 1em;
-	border-bottom: 1px solid #f0f0f0;
+	border-bottom: 1px solid var(--idl-row-border, #f0f0f0);
 	flex: 0 0 auto;
 }
 .idl-grid .idl-download-card:has(.idl-download-card__title) .idl-file-item:last-child {
@@ -310,8 +345,8 @@
 	width: 100%;
 	padding: .8em 1em;
 	margin: 0;
-	background: #f6f7f9;
-	border-bottom: 1px solid #e5e5e5;
+	background: var(--idl-title-band-bg, #f6f7f9);
+	border-bottom: 1px solid var(--idl-card-border, #e5e5e5);
 	font-size: 1em;
 	font-weight: 600;
 	line-height: 1.3;
@@ -341,7 +376,7 @@
 	gap: .5em;
 	padding: 1em;
 	font-size: .95em;
-	color: #555;
+	color: var(--idl-meta-color, #666);
 	margin: 0;
 }
 .idl-grid .idl-file-item__meta .idl-meta { font-size: inherit; }
@@ -369,18 +404,18 @@
 	font-weight: 700;
 	letter-spacing: .05em;
 	border-radius: 3px;
-	color: #fff;
+	color: var(--idl-icon-color, #fff);
 	text-transform: uppercase;
 }
-.idl-grid .idl-meta--type.idl-type--pdf  { background: #c0392b; }
-.idl-grid .idl-meta--type.idl-type--doc  { background: #2980b9; }
-.idl-grid .idl-meta--type.idl-type--xls  { background: #27ae60; }
-.idl-grid .idl-meta--type.idl-type--ppt  { background: #e67e22; }
-.idl-grid .idl-meta--type.idl-type--zip  { background: #8e44ad; }
-.idl-grid .idl-meta--type.idl-type--img  { background: #16a085; }
-.idl-grid .idl-meta--type.idl-type--vid  { background: #2c3e50; }
-.idl-grid .idl-meta--type.idl-type--aud  { background: #d35400; }
-.idl-grid .idl-meta--type.idl-type--file { background: #7f8c8d; }
+.idl-grid .idl-meta--type.idl-type--pdf  { background: var(--idl-icon-pdf-bg,  #c0392b); }
+.idl-grid .idl-meta--type.idl-type--doc  { background: var(--idl-icon-doc-bg,  #2980b9); }
+.idl-grid .idl-meta--type.idl-type--xls  { background: var(--idl-icon-xls-bg,  #27ae60); }
+.idl-grid .idl-meta--type.idl-type--ppt  { background: var(--idl-icon-ppt-bg,  #e67e22); }
+.idl-grid .idl-meta--type.idl-type--zip  { background: var(--idl-icon-zip-bg,  #8e44ad); }
+.idl-grid .idl-meta--type.idl-type--img  { background: var(--idl-icon-img-bg,  #16a085); }
+.idl-grid .idl-meta--type.idl-type--vid  { background: var(--idl-icon-vid-bg,  #2c3e50); }
+.idl-grid .idl-meta--type.idl-type--aud  { background: var(--idl-icon-aud-bg,  #d35400); }
+.idl-grid .idl-meta--type.idl-type--file { background: var(--idl-icon-file-bg, #7f8c8d); }
 
 /* ── Action band ── 15% of card height, full width, text centered. */
 .idl-grid .idl-file-item__action {

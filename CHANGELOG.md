@@ -2,6 +2,23 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.7.0] — 2026-05-14
+
+Theming refactor — public stylesheet is now a public API. Replaces the removed Custom CSS textarea (0.6.1) with a WordPress-approved customization path: users override `--idl-*` CSS custom properties from `Appearance → Customize → Additional CSS`. No plugin code accepts user CSS.
+
+### Added
+- **CSS custom properties** for every color in `public/css/public-style.css`, defined on `:root` with the `--idl-*` prefix. 18 variables in total covering surfaces (`--idl-card-bg`, `--idl-card-border`, `--idl-row-border`, `--idl-title-band-bg`), typography colors (`--idl-meta-color`, `--idl-empty-color`), the HOT badge (`--idl-badge-hot-bg`, `--idl-badge-hot-color`), and all nine file-type colors (`--idl-icon-pdf-bg` … `--idl-icon-file-bg` plus `--idl-icon-color`). All applied via `var(--idl-*, #fallback)` so the visual default holds even if `:root` is somehow nuked.
+- **"Customizing appearance" section in `readme.txt`** between the FAQ and Screenshots, documenting both the 18 CSS variables and the public BEM class hierarchy. Includes a copy-paste snippet showing how to use it from Customizer → Additional CSS.
+
+### Changed
+- **File-type colors deduplicated.** Previously the same hex (e.g. `#c0392b` for PDF) was hardcoded twice — once on `.idl-icon--pdf` for the list-mode tile and again on `.idl-grid .idl-meta--type.idl-type--pdf` for the grid-mode badge. Both now resolve through `var(--idl-icon-pdf-bg)` so a single override changes both renderings.
+- **Grid-mode meta color consolidated** from `#555` to `#666` so it matches list mode and shares the `--idl-meta-color` variable. Marginal visual shift; users who preferred the darker tone can set `:root { --idl-meta-color: #555; }` in Additional CSS.
+
+### Deliberately excluded
+- **No `--idl-btn-bg` / `--idl-btn-color`.** Adding them would either be orphan vars (defined but not applied) or would force a `background:` declaration on `.idl-download-btn` that overrides the theme's `wp-element-button` styling — a visual regression for every existing install. Users wanting button restyling target `.idl-download-btn` directly (documented in the class hierarchy section).
+- **No spacing variables** (card padding, grid gap, etc.). Changing those breaks the 1.5:2.7 portrait lock and container-query thresholds. Save for a later release if requested.
+- **No admin-side variables.** Admin UI styling isn't a customization surface; users don't customize wp-admin chrome via plugins.
+
 ## [0.6.1] — 2026-05-13
 
 WordPress.org plugin review (round 1) fixes.

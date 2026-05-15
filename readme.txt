@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.6.1
+Stable tag: 0.7.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -88,6 +88,56 @@ Yes. Uploaded filenames and category slugs are automatically transliterated from
 
 Yes. The plugin detects FSE themes and injects the download card via `the_content` filter. Classic theme templates under `templates/` are used as a fallback.
 
+== Customizing appearance ==
+
+i-Downloads exposes its styling via CSS custom properties on `:root` so you can recolor cards from **Appearance → Customize → Additional CSS** without writing any selectors.
+
+Example — recolor the PDF icon to match your theme blue and soften card borders:
+
+`:root {
+    --idl-icon-pdf-bg: #1a73e8;
+    --idl-card-border: #ddd;
+}`
+
+= Available CSS variables =
+
+* `--idl-card-bg` — Card background
+* `--idl-card-border` — Card and grid borders
+* `--idl-row-border` — Per-file row separator
+* `--idl-title-band-bg` — Grid-mode title band background
+* `--idl-meta-color` — Date / size / count text
+* `--idl-empty-color` — "No files available" text
+* `--idl-badge-hot-bg` — HOT badge background
+* `--idl-badge-hot-color` — HOT badge text
+* `--idl-icon-color` — File-type icon/badge text
+* `--idl-icon-pdf-bg` — PDF file color
+* `--idl-icon-doc-bg` — DOC / DOCX color
+* `--idl-icon-xls-bg` — XLS / XLSX color
+* `--idl-icon-ppt-bg` — PPT / PPTX color
+* `--idl-icon-zip-bg` — Archive (ZIP / RAR / 7Z) color
+* `--idl-icon-img-bg` — Image color
+* `--idl-icon-vid-bg` — Video color
+* `--idl-icon-aud-bg` — Audio color
+* `--idl-icon-file-bg` — Generic / unknown file color
+
+= Targeting individual classes =
+
+For deeper changes (layout, spacing, typography), all public classes use the `.idl-` prefix with BEM naming. Key entry points:
+
+* `.idl-download-card` — Outer wrapper around one download
+* `.idl-download-card__title` — Multi-file card heading
+* `.idl-file-item` — Per-file row
+* `.idl-file-item__icon` — Large file-type tile (list mode only)
+* `.idl-file-item__title` — File or download title link
+* `.idl-file-item__meta` — Date / size / count meta block
+* `.idl-file-item__action` — Action column (button or status label)
+* `.idl-download-btn` — The action button (intentionally not theme-locked via CSS variables; targets WP `wp-element-button` so theme styling stays in control)
+* `.idl-meta--type` — Inline file-type badge (grid mode only)
+* `.idl-badge--hot` — HOT marker
+* `.idl-grid` — Grid wrapper (use `.idl-grid--cols-3` etc. for per-column-count overrides)
+* `.idl-list-wrap` — List wrapper
+* `.idl-category-grid` — Category grid wrapper
+
 == Screenshots ==
 
 1. Download edit screen with drag-and-drop upload, per-file progress, and the From Folder browser.
@@ -97,6 +147,12 @@ Yes. The plugin detects FSE themes and injects the download card via `the_conten
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.7.0 =
+* **Theming via CSS custom properties.** Every color in the public stylesheet is now exposed as a `--idl-*` variable on `:root`. Override one variable in **Appearance → Customize → Additional CSS** to recolor any element — no selector knowledge needed. Replaces the removed Custom CSS feature with a WordPress-approved customization path.
+* **New "Customizing appearance" section** in this readme listing all 18 variables and the public BEM class hierarchy.
+* **File-type colors deduplicated** — the same color now drives both the list-mode tile and the grid-mode badge for each file type.
+* Grid-mode meta text consolidated from `#555` to `#666` (matches list mode). Override with `--idl-meta-color` if you preferred the darker tone.
 
 = 0.6.1 =
 * **Removed Custom CSS textarea** from Settings → Advanced. Arbitrary CSS injection is disallowed by WordPress.org plugin guidelines. Existing `idl_custom_css` option rows are deleted on upgrade.

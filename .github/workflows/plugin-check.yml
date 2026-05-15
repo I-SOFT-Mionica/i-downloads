@@ -25,5 +25,9 @@ jobs:
       - name: Run Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
-          build-dir: './i-downloads'
+          # Absolute path needed because wp-env resolves relative mapping paths
+          # against its own .wp-env.json location, not the repo root, so the
+          # plugin install via mapping silently fails with a relative './path'.
+          build-dir: ${{ github.workspace }}/i-downloads
+          slug: i-downloads
           exclude-directories: 'vendor,node_modules,tests'

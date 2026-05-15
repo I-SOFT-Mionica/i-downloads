@@ -49,19 +49,16 @@ jobs:
         run: wp-env start
 
       - name: Stage plugin
-        # The repo IS the plugin (no nested subdirectory), so we have to stage
-        # a clean copy that excludes repo-management files (.git, .github,
-        # the .wp-env.json we wrote at workspace root, vendor, tests, etc.)
-        # before injecting it into the container.
+        # Stage the same files that build.py / `wp dist-archive` would ship to
+        # WP.org — driven by .distignore so there's a single source of truth.
+        # Plugin Check flags any dev/build files in the staged copy
+        # (phpcs.xml.dist, .gitignore, etc.), so this must mirror the release
+        # zip exactly.
         run: |
           mkdir -p /tmp/staging/i-downloads
           rsync -a \
-            --exclude='.git/' \
-            --exclude='.github/' \
             --exclude='.wp-env.json' \
-            --exclude='vendor/' \
-            --exclude='node_modules/' \
-            --exclude='tests/' \
+            --exclude-from="${{ github.workspace }}/.distignore" \
             "${{ github.workspace }}/" /tmp/staging/i-downloads/
           ls -la /tmp/staging/i-downloads/
 

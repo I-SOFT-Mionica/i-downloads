@@ -158,21 +158,43 @@
 
 		<hr>
 
+		<?php
+		$idl_customizer_url = admin_url( 'customize.php?autofocus[section]=custom_css' );
+		$idl_customizer_link =
+			'<a href="' . esc_url( $idl_customizer_url ) . '" target="_blank" rel="noopener">'
+			. esc_html__( 'Appearance → Customize → Additional CSS', 'i-downloads' )
+			. '</a>';
+		$idl_example_css =
+			":root {\n"
+			. "    --idl-icon-pdf-bg: #1a73e8;\n"
+			. "    --idl-card-border: #ddd;\n"
+			. '}';
+		$idl_link_kses = array(
+			'a' => array(
+				'href'   => array(),
+				'target' => array(),
+				'rel'    => array(),
+			),
+		);
+		?>
+
 		<h2><?php esc_html_e( 'Theming', 'i-downloads' ); ?></h2>
-		<p><?php
-			printf(
-				/* translators: %s: link to the WordPress Customizer Additional CSS panel */
-				esc_html__( 'Visual styling is exposed via CSS custom properties on :root. Override any value in %s — no plugin file edits, no selector knowledge needed.', 'i-downloads' ),
-				'<a href="' . esc_url( admin_url( 'customize.php?autofocus[section]=custom_css' ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Appearance → Customize → Additional CSS', 'i-downloads' ) . '</a>'
+		<p>
+			<?php
+			echo wp_kses(
+				sprintf(
+					/* translators: %s: link to the WordPress Customizer Additional CSS panel */
+					__( 'Visual styling is exposed via CSS custom properties on :root. Override any value in %s — no plugin file edits, no selector knowledge needed.', 'i-downloads' ),
+					$idl_customizer_link
+				),
+				$idl_link_kses
 			);
-		?></p>
+			?>
+		</p>
 
 		<details class="idl-theming-details" open>
 			<summary><strong><?php esc_html_e( 'Example: recolor PDF icons + soften card borders', 'i-downloads' ); ?></strong></summary>
-			<pre class="idl-theming-snippet"><code>:root {
-    --idl-icon-pdf-bg: #1a73e8;
-    --idl-card-border: #ddd;
-}</code></pre>
+			<pre class="idl-theming-snippet"><code><?php echo esc_html( $idl_example_css ); ?></code></pre>
 		</details>
 
 		<details class="idl-theming-details">

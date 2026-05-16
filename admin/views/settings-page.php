@@ -161,10 +161,9 @@
 		<h2><?php esc_html_e( 'Theming', 'i-downloads' ); ?></h2>
 		<p><?php esc_html_e( 'Visual styling is exposed via CSS custom properties on :root. Override any value via WordPress Customizer — no plugin file edits, no selector knowledge needed.', 'i-downloads' ); ?></p>
 
-		<?php $idl_example_css = ":root {\n    --idl-icon-pdf-bg: #1a73e8;\n    --idl-card-border: #ddd;\n}"; ?>
 		<details class="idl-theming-details" open>
 			<summary><strong><?php esc_html_e( 'Example: recolor PDF icons + soften card borders', 'i-downloads' ); ?></strong></summary>
-			<pre class="idl-theming-snippet"><code><?php echo esc_html( $idl_example_css ); ?></code></pre>
+			<pre class="idl-theming-snippet"><code><?php echo esc_html( ":root {\n    --idl-icon-pdf-bg: #1a73e8;\n    --idl-card-border: #ddd;\n}" ); ?></code></pre>
 		</details>
 
 		<details class="idl-theming-details">

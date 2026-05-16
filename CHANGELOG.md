@@ -2,6 +2,18 @@
 
 All notable changes to **i-Downloads**. Format loosely based on [Keep a Changelog](https://keepachangelog.com/). Versions follow [Semantic Versioning](https://semver.org/) once we hit 1.0.0; pre-1.0 bumps are incremental and freely breaking.
 
+## [0.7.2] — 2026-05-16
+
+Demo content now ships a showcase page so users can see all three embed patterns in one place.
+
+### Added
+- **`IDL_Demo_Content::create_demo_page()`** runs after `create_downloads()` and inserts a published WP page (`post_type=page`) titled "i-Downloads — Demo Page" with Gutenberg block markup demonstrating: the Download Entry block (`<!-- wp:i-downloads/download-button {"downloadId":N} /-->`) using the first created download, the Download List block in list mode (`{"layout":"list","limit":6}`), and the Download List block in grid mode (`{"layout":"grid","limit":6}`). Each block sits under a heading + caption explaining what it is. Bilingual content follows the existing `cyrillic_titles` setting.
+- **`IDL_Demo_Content::demo_page_content()`** builds the block markup string. All translated content escaped with `esc_html()` before concatenation into the block comments; `downloadId` is cast to `int`.
+
+### Changed
+- **`IDL_Demo_Content::create_downloads()`** now returns `list<int>` of created download IDs so the demo page can reference one for the single-download section. Previously returned `void`.
+- **`IDL_Demo_Content::remove_demo_posts()`** now queries `post_type => array( 'idl', 'page' )` so the Remove Demo Content button cleans up the new demo page along with the downloads. File cleanup is gated on `get_post_type() === 'idl'` since pages have no associated `idl_files` rows.
+
 ## [0.7.1] — 2026-05-16
 
 In-admin theming reference.

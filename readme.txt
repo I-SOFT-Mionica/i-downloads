@@ -4,7 +4,7 @@ Tags: downloads, file manager, document management, categories, download counter
 Requires at least: 6.6
 Tested up to: 6.9
 Requires PHP: 8.4
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -147,6 +147,9 @@ For deeper changes (layout, spacing, typography), all public classes use the `.i
 5. Download handler settings — security, logging, and serve method.
 
 == Changelog ==
+
+= 0.7.2 =
+* **Demo content now creates a showcase page.** Installing demo content also adds a published WP page titled "i-Downloads — Demo Page" with three sections demonstrating the Download Entry block (single download), Download List block in list mode, and Download List block in grid mode — so new users can see all three embed patterns side-by-side without manually composing a page. Removed cleanly by the existing Remove Demo Content button.
 
 = 0.7.1 =
 * **Theming docs surfaced in admin.** The Display tab now includes a "Theming" section listing all 18 CSS variables, the public BEM class hierarchy, a copy-paste snippet, and a one-click link to Customizer → Additional CSS. Same content as the readme; previously only visible on the WordPress.org plugin page.

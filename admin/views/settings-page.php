@@ -156,6 +156,83 @@
 			</tr>
 		</table>
 
+		<hr>
+
+		<h2><?php esc_html_e( 'Theming', 'i-downloads' ); ?></h2>
+		<p><?php esc_html_e( 'Visual styling is exposed via CSS custom properties on :root. Override any value via WordPress Customizer — no plugin file edits, no selector knowledge needed.', 'i-downloads' ); ?></p>
+
+		<details class="idl-theming-details" open>
+			<summary><strong><?php esc_html_e( 'Example: recolor PDF icons + soften card borders', 'i-downloads' ); ?></strong></summary>
+			<pre class="idl-theming-snippet"><code><?php echo esc_html( ":root {\n    --idl-icon-pdf-bg: #1a73e8;\n    --idl-card-border: #ddd;\n}" ); ?></code></pre>
+		</details>
+
+		<details class="idl-theming-details">
+			<summary><strong><?php esc_html_e( 'All CSS variables (18)', 'i-downloads' ); ?></strong></summary>
+			<table class="widefat striped idl-theming-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Variable', 'i-downloads' ); ?></th>
+						<th><?php esc_html_e( 'Default', 'i-downloads' ); ?></th>
+						<th><?php esc_html_e( 'Controls', 'i-downloads' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr><td><code>--idl-card-bg</code></td><td><code>#fff</code></td><td><?php esc_html_e( 'Card background', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-card-border</code></td><td><code>#e5e5e5</code></td><td><?php esc_html_e( 'Card and grid borders', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-row-border</code></td><td><code>#f0f0f0</code></td><td><?php esc_html_e( 'Per-file row separator', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-title-band-bg</code></td><td><code>#f6f7f9</code></td><td><?php esc_html_e( 'Grid-mode title band background', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-meta-color</code></td><td><code>#666</code></td><td><?php esc_html_e( 'Date / size / count text', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-empty-color</code></td><td><code>#888</code></td><td><?php esc_html_e( '"No files available" text', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-badge-hot-bg</code></td><td><code>#e74c3c</code></td><td><?php esc_html_e( 'HOT badge background', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-badge-hot-color</code></td><td><code>#fff</code></td><td><?php esc_html_e( 'HOT badge text', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-color</code></td><td><code>#fff</code></td><td><?php esc_html_e( 'File-type icon/badge text', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-pdf-bg</code></td><td><code>#c0392b</code></td><td><?php esc_html_e( 'PDF file color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-doc-bg</code></td><td><code>#2980b9</code></td><td><?php esc_html_e( 'DOC / DOCX color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-xls-bg</code></td><td><code>#27ae60</code></td><td><?php esc_html_e( 'XLS / XLSX color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-ppt-bg</code></td><td><code>#e67e22</code></td><td><?php esc_html_e( 'PPT / PPTX color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-zip-bg</code></td><td><code>#8e44ad</code></td><td><?php esc_html_e( 'Archive (ZIP / RAR / 7Z) color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-img-bg</code></td><td><code>#16a085</code></td><td><?php esc_html_e( 'Image color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-vid-bg</code></td><td><code>#2c3e50</code></td><td><?php esc_html_e( 'Video color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-aud-bg</code></td><td><code>#d35400</code></td><td><?php esc_html_e( 'Audio color', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>--idl-icon-file-bg</code></td><td><code>#7f8c8d</code></td><td><?php esc_html_e( 'Generic / unknown file color', 'i-downloads' ); ?></td></tr>
+				</tbody>
+			</table>
+		</details>
+
+		<details class="idl-theming-details">
+			<summary><strong><?php esc_html_e( 'Public CSS classes (advanced)', 'i-downloads' ); ?></strong></summary>
+			<p class="description"><?php esc_html_e( 'For deeper changes (layout, spacing, typography), target these classes directly. All public classes use the .idl- prefix with BEM naming.', 'i-downloads' ); ?></p>
+			<table class="widefat striped idl-theming-table">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Class', 'i-downloads' ); ?></th>
+						<th><?php esc_html_e( 'Element', 'i-downloads' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr><td><code>.idl-download-card</code></td><td><?php esc_html_e( 'Outer wrapper around one download', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-download-card__title</code></td><td><?php esc_html_e( 'Multi-file card heading', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-file-item</code></td><td><?php esc_html_e( 'Per-file row', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-file-item__icon</code></td><td><?php esc_html_e( 'Large file-type tile (list mode only)', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-file-item__title</code></td><td><?php esc_html_e( 'File or download title link', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-file-item__meta</code></td><td><?php esc_html_e( 'Date / size / count meta block', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-file-item__action</code></td><td><?php esc_html_e( 'Action column (button or status label)', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-download-btn</code></td><td><?php esc_html_e( 'The action button itself', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-meta--type</code></td><td><?php esc_html_e( 'Inline file-type badge (grid mode only)', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-badge--hot</code></td><td><?php esc_html_e( 'HOT marker', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-grid</code></td><td><?php esc_html_e( 'Grid wrapper', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-list-wrap</code></td><td><?php esc_html_e( 'List wrapper', 'i-downloads' ); ?></td></tr>
+					<tr><td><code>.idl-category-grid</code></td><td><?php esc_html_e( 'Category grid wrapper', 'i-downloads' ); ?></td></tr>
+				</tbody>
+			</table>
+		</details>
+
+		<p>
+			<a href="<?php echo esc_url( admin_url( 'customize.php?autofocus[section]=custom_css' ) ); ?>" class="button button-primary" target="_blank" rel="noopener">
+				<?php esc_html_e( 'Open Customizer → Additional CSS', 'i-downloads' ); ?>
+			</a>
+		</p>
+
 		<?php elseif ( 'security' === $active_tab ) : ?>
 		<table class="form-table">
 			<tr>
